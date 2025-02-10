@@ -1,0 +1,184 @@
+---
+title: "HW_241023"
+author: "Hana Kwon"
+date: "2024-10-23"
+output: pdf_document
+---
+
+#### **[POLS4720] 'Applied Regression & Causal Inference'**
+
+# **Homework**
+
+### **by Hana Kwon**
+
+------------------------------------------------------------------------
+
+### [**Class 7b:**]{.underline} Transformations and regression
+
+**#1.**
+
+**#1-a.**
+
+![](images/IMG_C4EC503E3414-1%202-01.jpeg)
+
+```{r}
+n <- 700
+p_hat <- 0.5
+SE <- sqrt((p_hat * (1 - p_hat)) / n)
+SE
+```
+
+**#1-b.**
+
+![](images/IMG_CDCF8448C0B4-1.jpeg)
+
+```{r}
+n1 <- 500
+n2 <- 600
+p1_hat <- 0.5
+p2_hat <- 0.5
+
+SE_diff <- sqrt((p1_hat * (1 - p1_hat)) / n1 + (p2_hat * (1 - p2_hat)) / n2)
+SE_diff
+```
+
+**#1-c.**
+
+![](images/IMG_1200.jpg)
+
+```{r}
+SE_old <- 0.30
+n_old <- 150
+n_new <- 2 * n_old
+
+SE_new <- SE_old * sqrt(n_old / n_new)
+SE_new
+```
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+### [**Class 8a:** Logistic regression]{.underline}
+
+**#1. Sketch the logistic regression curves with pen on paper:**
+
+(a) Pr(y = 1) = logit\^{-1}(x)
+(b) Pr(y = 1) = logit\^{-1}(2 + x)
+(c) Pr(y = 1) = logit\^{-1}(2x)
+(d) Pr(y = 1) = logit\^{-1}(2 + 2x)
+(e) Pr(y = 1) = logit\^{-1}(-2x)In R, I’ll first define the logistic (inverse logit) function and plot each case.
+
+\>\>The logistic function has an “S” shape, and each variation shifts or stretches the curve in different ways:
+
+• logit\^{-1}(x) is the basic S-curve.
+
+• logit\^{-1}(2 + x) shifts the curve to the left.
+
+• logit\^{-1}(2x) makes the curve steeper.
+
+• logit\^{-1}(2 + 2x) shifts the curve left and makes it steeper.
+
+• logit\^{-1}(-2x) flips the curve horizontally.
+
+![](images/IMG_BEBC35CB6C69-1.jpeg)
+
+------------------------------------------------------------------------
+
+**#2.**
+
+**#2-a.**
+
+```{r}
+set.seed(123) 
+
+# Parameters
+a <- -0.5
+b <- 0.1
+
+# Simulate 100 random x values from (0, 20)
+x_sim <- runif(100, 0, 20)
+
+# Define logit inverse function (logistic function)
+logit_inv <- function(z) {
+  return(1 / (1 + exp(-z)))
+}
+
+# Generate probabilities and simulate y values
+prob <- logit_inv(a + b * x_sim)
+y_sim <- rbinom(100, 1, prob)
+
+# Fit a logistic regression
+fit <- glm(y_sim ~ x_sim, family = binomial)
+
+# Summarize the fit
+summary(fit)
+```
+
+**#2-b. Plotting the data and the fitted curve on a single graph.**
+
+\>\> I simulated 100 x -values between 0 and 20 and calculated the probability Pr(y = 1) using the logistic function.
+
+\>\> Then, I generated y -values from a binomial distribution based on these probabilities.
+
+\>\> I fitted a logistic regression model to these data using the glm() function, and the output shows the estimated coefficients.
+
+\>\> The plot shows the simulated data points along with the fitted logistic regression curve in red.
+
+```{r}
+# Plot the simulated data
+plot(x_sim, y_sim, pch = 19, xlab = "x", ylab = "y", main = "Logistic Regression Fit")
+
+# Add the fitted curve
+curve(logit_inv(coef(fit)[1] + coef(fit)[2] * x), add = TRUE, col = "red", lwd = 2)
+```
+
+------------------------------------------------------------------------
+
+**#3. Fitting a logistic regression predicting support for Bush using the NES data.**
+
+```{r}
+
+# Import Data
+nes_data <- read.csv("nes.txt")
+
+# Check the variables
+names(nes_data)
+
+# Load the NES data
+nes_data <- read.table("nes.txt", header = TRUE)
+
+bush <- nes_data$rovte
+
+# Fit the logistic regression model
+fit_bush <- glm(rvote ~ gender + race + educ1 + educ2 + educ3 + partyid7 + real_ideo, data = nes_data, family = binomial)
+
+# Summarize the model
+summary(fit_bush)
+```
+
+------------------------------------------------------------------------
+
+**#4. Logistic regression predicting “heavy” from height**
+
+**#4-a.** Graph the logistic regression curve.
+
+![](images/IMG_E12222192F3B-1.jpeg)
+
+**#4-b.**
+
+The slope of the regression is 0.28, meaning that for [every additional inch of height, the log-odds of being heavy increase by 0.28]{.underline}.
+
+\>\> To find the change in probability:
+
+```{r}
+# Define the intercept and slope values
+intercept <- -21.51
+slope <- 0.28
+
+# Calculate the change in probability for a one-inch difference near the 50% point using plogis()
+change_in_prob <- plogis(intercept + slope * 70) - plogis(intercept + slope * 69)
+change_in_prob
+```
+
+\>\>This would give the approximate change in probability near the 50% mark.

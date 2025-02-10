@@ -1,0 +1,393 @@
+---
+title: "HW2_241009"
+author: "Hana Kwon"
+date: "2024-10-09"
+output: pdf_document
+---
+
+#### **[POLS4720] 'Applied Regression & Causal Inference'**
+
+# **Homework**
+
+### **by Hana Kwon**
+
+------------------------------------------------------------------------
+
+### [**Class 5b: Prediction and Bayesian inference**]{.underline}
+
+**#1.**
+
+**#1-a.** Simulate 100 data points from the regression model, y = 0:2 + 0:3x + error, with x drawn at random from the range (10; 20) and errors drawn from [a normal distribution with mean 0 and standard deviation 0.4.]{.underline} Make a plot that includes the simulated data and a fitted regression line.
+
+\>\> Solution:
+
+To simulate the data,
+
+1.  [I generated 100 random values for x from the range (10, 20).]{.underline} The error term was drawn from a normal distribution with [mean 0 and standard deviation 0.4.]{.underline} which were provided in the problem.
+
+2.  I then applied the regression equation [y = 0.2 + 0.3x + error]{.underline} to [generate the corresponding y values.]{.underline}
+
+3.  I used the **lm() function** in R [to fit a linear regression model]{.underline} to the data, and [then plotted both the simulated data points and the fitted regression line.]{.underline}
+
+Here is the R code:
+
+```{r}
+
+# Simulating 100 data points from the regression model y = 0.2 + 0.3x + error
+set.seed(42)
+# Generate Random Values of x from the range (10, 20)
+x <- runif(100, 10, 20)  
+# Errors drawn from a normal distribution
+error <- rnorm(100, mean = 0, sd = 0.4)  
+# Applying the Regression model
+y <- 0.2 + 0.3 * x + error 
+
+# Fitting a regression model to the data
+model <- lm(y ~ x)
+
+# Plot the simulated data and fitted regression line
+plot(x, y, main = "Simulated Data and Fitted Regression Line", 
+     xlab = "x", ylab = "y", pch = 19)
+abline(model, col = "red", lwd = 2)
+```
+
+**#1-b.** Do [**predict, posterior linpred, and posterior predict**]{.underline} for a new data point at the value x = 20. [For the last two of these]{.underline}, summarize the distribution of predictions by their median and 50% predictive intervals. Discuss how these intervals differ.
+
+\>\> Solution:
+
+For this task, I used the [fitted regression model]{.underline} to [predict the value of y for x = 20]{.underline}. I computed [three types of predictions:]{.underline}
+
+1.  **Point prediction**: This is the predicted value of y based [solely on the fitted coefficients.]{.underline} This provides a single best estimate for y at x = 20, ignoring any uncertainty in the model or future variability.
+
+2.  **Posterior linpred**: This represents the linear predictor, which [incorporates the uncertainty in the model parameters (the slope and intercept),]{.underline} as it It gives a confidence interval around the predicted mean. This interval is [*narrower*]{.underline} because it [*does not include uncertainty due to residual variability (errors).*]{.underline}
+
+3.  **Posterior predict**: This [includes both the uncertainty in the model parameters and the expected variability in future observations (residual error)]{.underline}. Thus, it provides [*a wider, more full*]{.underline} [*predictive interval.*]{.underline}
+
+    The R code to implement these is:
+
+```{r}
+# New data point for x = 20
+new_data <- data.frame(x = 20)
+
+#***** 1. Point prediction: Predict for x = 20
+predict_point <- predict(model, newdata = new_data)
+
+#***** 2.Posterior linpred (linear predictor without error term)
+posterior_linpred <- predict(model, newdata = new_data, interval = "confidence")
+
+#***** 3.Posterior predict (with uncertainty and error term)
+posterior_predict <- predict(model, newdata = new_data, interval = "prediction")
+
+# Display the results
+predict_point
+posterior_linpred
+posterior_predict
+```
+
+For the [differences between **posterior linpred** and **posterior predict**:]{.underline}
+
+-   **Posterior linpred** shows [uncertainty only due to model coefficients (ignoring residual error).]{.underline}
+
+-   **Posterior predict** includes [both coefficient uncertainty and the variability of new observations (residual error).]{.underline}
+
+------------------------------------------------------------------------
+
+**#2. Regression in a Randomized Experiment:**
+
+Q \>\> A randomized experiment is performed in a number of cities, estimating [the effect of an experimental program to increase quality of life]{.underline}. At the beginning of the study, [a survey]{.underline} is conducted in each city measuring [residents' satisfaction on a 1-10 scale.]{.underline} A regression is fit predicting y given x and z.
+
+-   **x_i:** The average satisfaction of residents on their quality-of-life, surveyed in city i before the program was implemented. (scale of 1-10)
+
+-   **z_i:** Whether city i received the program (1 if yes, 0 if no).
+
+-   **y_i:** The satisfaction of residents surveyed in city i after the program.
+
+**#2-a.** Write a R code for **Fitting the regression using default priors**
+
+\>\> First, let's fit a regression model with default priors [using the **rstanarm**]{.underline}**,** to run a Bayesian regression [using weakly informative default priors for all parameters.]{.underline}
+
+-   The regression model: y_i = Alpha+ Beta1 x_i + Beta2 z_i + e(error term)\_i
+
+\>\> R code to fit the model with default priors:
+
+```{r}
+
+options(repos = c(CRAN = "https://cran.rstudio.com/"))
+
+options(repos = c(CRAN = "https://cran.rstudio.com/"))
+
+
+# Install and load rstanarm package
+install.packages("rstanarm")
+library(rstanarm)
+
+# Simulate the data
+set.seed(123)
+n <- 100
+x <- rnorm(n, 5, 2)  # Baseline satisfaction score
+z <- rbinom(n, 1, 0.5)  # Random assignment to program (z = 1) or control (z = 0)
+y <- 2 + 0.8 * x + 1.5 * z + rnorm(n)  # Outcome satisfaction score
+
+# Fit the Bayesian regression model with default priors
+model_default <- stan_glm(y ~ x + z, data = data.frame(y, x, z), family = gaussian())
+
+# Summarize the model results
+summary(model_default)
+```
+
+**#2-b.** Write R code for **Fitting a Regression with a Flat Prior on the Effect of z:**
+
+\>\> Here, let's fit a regression where [the prior on the effect of z is **flat (uninformative**)]{.underline}. This implies that [we are **not imposing any prior belief** about the effect of the program.]{.underline} The prior for Beta_2 (the coefficient of z) will be set to flat. (prior=null in rstanarm -\> indicates that no strong prior is imposed)
+
+\>\> R code :
+
+```{r}
+# Fit the Bayesian regression model with a flat prior on z
+model_flat_prior <- stan_glm(y ~ x + z, 
+                             data = data.frame(y, x, z), 
+                             family = gaussian(),
+                             prior = NULL)  # Flat prior
+
+# Summarize the model results
+summary(model_flat_prior)
+```
+
+**#2-c.** **Fitting a Regression with a Prior on z for a 68% Chance in Range [-1.5, +1.5]:** Write R code for fitting the regression with a prior that says the effect of z to be equally likely to be positive or negative, with an approximate 68% chance that the effect is in the range (-1.5, +1.5).
+
+\>\>Let's specify a prior that indicates a [68% probability]{.underline} that [the effect of z falls within the range [-1.5, +1.5]]{.underline}.
+
+=\> This is equivalent to [setting a normal prior with mean 0 and standard deviation 1,]{.underline} since [**the range [-1.5, +1.5]** corresponds to approximately **one standard deviation in a normal distribution.**]{.underline}
+
+The prior for Beta_2 will be a normal distribution with mean 0 and standard deviation 1.
+
+\>\> R code:
+
+```{r}
+# Set a normal prior on the effect of z
+prior_z <- normal(0, 1)  # Normal(0, 1) implies a 68% chance in [-1.5, 1.5]
+
+# Fit the Bayesian regression model with the specified prior on z
+model_prior_z <- stan_glm(y ~ x + z, 
+                          data = data.frame(y, x, z), 
+                          family = gaussian(),
+                          prior = prior_z, 
+                          prior_intercept = normal(0, 10),  # Prior for the intercept
+                          prior_aux = exponential(1))  # Weak prior on the residual error
+
+# Check >> Let's summarize the model results
+summary(model_prior_z)
+```
+
+------------------------------------------------------------------------
+
+**#3.** A linear regression is fit to the data below. Which point has the most influence (see Section 8.2 of Regression and Other Stories) on the slope?
+
+![](images/clipboard-1204999850.png){width="241"}
+
+\>\> According to Section 8.2, the influence of each data point on the regression slope depends on [how far its x_i value is from the mean x_bar]{.underline} .
+
+-   If x_i = x_bar, the point has [no influence on the slope]{.underline}. 4
+
+-   If x_i \> x_bar or x_i \< x_bar, [the further the point is from x_bar, the greater its influence on the slope.]{.underline}
+
+    \>\> Therefore, [the point with the **x_i value farthest from the mean** exerts **the most influence on the regression slope.**]{.underline}
+
+------------------------------------------------------------------------
+
+**#4.** A linear regression is fit on high school students modeling grade point average given household income.
+
+Write R code to compute [the 90% predictive interval]{.underline} for the [difference in grade point average]{.underline} comparing two students, [one with household incomes of \$40 000]{.underline} and [one with household income of \$80 000.]{.underline}
+
+\>\> R code:
+
+```{r}
+# Let's start by simulating some example data
+set.seed(123)
+n <- 100
+
+# Household income
+income <- rnorm(n, mean=60000, sd=15000) 
+# GPA with some noise
+gpa <- 3 + 0.00002 * income + rnorm(n, 0, 0.2) 
+
+# Fit the linear regression model
+model <- lm(gpa ~ income)
+
+# Then, let's predict GPA for two students with household incomes of 40000 and 80000
+income_diff <- data.frame(income=c(40000, 80000))
+predictions <- predict(model, newdata=income_diff, interval="predict", level=0.90)
+
+# Let's compute the difference in GPA and the 90% predictive interval
+gpa_diff <- predictions[2, ] - predictions[1, ]
+gpa_diff
+```
+
+\>\> R code shows that:
+
+-   The linear model lm(gpa \~ income) is fitted to model GPA based on household income.
+
+-   It predicts GPA for two income levels (\$40,000 and \$80,000) using predict() with a 90% predictive interval.
+
+-   The difference between the predicted GPA values and the predictive interval is calculated.
+
+------------------------------------------------------------------------
+
+### [**Class 6a: Linear regression with multiple predictors**]{.underline}
+
+**#1. Indicator Variables**
+
+**#1-a. Why is it better to code sex as 1 for men and 0 for women?**
+
+\>\> Coding sex as [**male = 1 and female = 0**]{.underline} allows for an [easier interpretation of coefficients in a linear regression.]{.underline} If sex is coded as 1 for women and 2 for men, [the numerical difference between 1 and 2 introduces confusion]{.underline} because [the interpretation is not as straightforward]{.underline} as a binary indicator. Coding male as 1 and female as 0 allows the coefficient to directly express the difference between men and women.
+
+**#1-b. Fitting the regression with grade as a linear predictor.**
+
+\>\> R code:
+
+```{r}
+# Example dataset
+data <- data.frame(
+  pre_test = rnorm(100, 70, 10),
+  male = rbinom(100, 1, 0.5),
+  grade = sample(6:8, 100, replace = TRUE),
+  post_test = rnorm(100, 75, 8)
+)
+
+# Fit the regression with grade as a linear predictor
+model_linear <- lm(post_test ~ pre_test + male + grade, data = data)
+summary(model_linear)
+```
+
+**#1-c. Fitting the regression with indicators for each grade.**
+
+\>\>R code:
+
+```{r}
+# Fit the regression with grade as a factor (indicator for each grade)
+data$grade_factor <- factor(data$grade)
+model_indicators <- lm(post_test ~ pre_test + male + grade_factor, data = data)
+summary(model_indicators)
+```
+
+------------------------------------------------------------------------
+
+**#2. Linear transformations and interactions**
+
+**#2-a. Define the centered variable male_c \<- male - 0.5. Provide the estimated coefficients.**
+
+\>\> [Centering male (subtracting 0.5) makes the coefficients more interpretable]{.underline}. Now [the intercept represents the average earnings for both males and females.]{.underline}
+
+```{r}
+# Simulating the dataset
+set.seed(123)
+data <- data.frame(
+  earnings = rnorm(100, mean = 50000, sd = 10000),  # Simulating earnings
+  height = rnorm(100, mean = 66, sd = 5),  # Simulating height
+  male = rbinom(100, 1, 0.5)  # Simulating male as binary (0 = female, 1 = male)
+)
+
+# Centering the male variable
+data$male_c <- data$male - 0.5
+
+# Fitting the model
+model_centered_male <- lm(earnings ~ height + male_c + height:male_c, data = data)
+
+# Displaying the summary of the model
+summary(model_centered_male)
+```
+
+**#2-b. Define the centered variable height_c \<- height - 66. Provide the estimated coefficients.**
+
+\>\> Similarly, centering height around a meaningful value (such as 66 inches) allows us to interpret the intercept at the average height.
+
+```{r}
+height_c <- data$height - 66
+
+# Fit the model with centered height variable
+model_centered_height <- lm(earnings ~ height_c + male_c + height_c:male_c, data = data)
+summary(model_centered_height)
+```
+
+**#2-c. Give the estimated coefficients.**
+
+**Given:**
+
+-   Centered height: height_c = height - 66
+
+-   Centered male: male_c = male - 0.5
+
+**Coefficients for the original model:**
+
+-   Intercept: -9.3
+
+-   Height: 0.4
+
+-   Male: -29.3
+
+-   Height:male interaction: 0.6
+
+**Centering both variables:** When centering variables, [the coefficients associated with the interaction term remain the same,]{.underline} [but the interpretation of the intercept and main effects changes.]{.underline}
+
+**Adjusting for centered height and male:** The new intercept will be adjusted by considering the centering of both height and male. The formula to adjust the intercept is:
+
+**{New Intercept} = {Old Intercept} + {Height Coefficient} x 66 + {Male Coefficient} x 0.5 + {Interaction Coefficient} x 66 x 0.5**
+
+= -9.3 + (0.4 x 66) + (-29.3 x 0.5) + (0.6 x 66 x 0.5)
+
+= -9.3 + 26.4 - 14.65 + 19.8
+
+= 22.25
+
+The coefficients for the centered height and male variables remain the same as in the original model:
+
+-   Height coefficient: 0.4
+
+-   Male coefficient: -29.3
+
+-   Height:male interaction: 0.6
+
+Final model with centered variables:
+
+**{Earnings} = 22.25 + 0.4 x {height_c} + (-29.3) x {male_c} + 0.6 x {height_c} x {male_c}**
+
+**\>\> Therefore, Conclusion:**
+
+-   Intercept: 22.25
+
+-   Height coefficient: 0.4
+
+-   Male coefficient: -29.3
+
+-   Height:male interaction: 0.6
+
+------------------------------------------------------------------------
+
+**#3. Regression with interactions** (Exercise 10.2 of Regression and Other Stories)
+
+**#3-a. Write the equation for the treatment and control group regression lines.**
+
+For the treatment group (z = 1): y = 1.2 + 1.6x + 2.7 + 0.7x = (1.2 + 2.7) + (1.6 + 0.7)x = 3.9 + 2.3x
+
+For the control group (z = 0): y = 1.2 + 1.6x
+
+**#3-b.**
+
+------------------------------------------------------------------------
+
+**#4. In pairs**
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(rstanarm)
+
+ipe <- readRDS("~/Desktop/2)Causal Inference/In Pair/4. Graham_Tucker_IPE_v5.RDS")
+
+dataframe <- ipe %>% 
+  select(year, country, exchange_rate_stable_TR,fdiflows_UNCTAD, gdppc_WDI) %>% 
+  filter(between(year, 1980,2000) )
+
+fit_1 <- stan_glm(fdiflows_UNCTAD ~ exchange_rate_stable_TR + factor(year) + exchange_rate_stable_TR:factor(year), data = dataframe, refresh =0)
+ 
+print(summary(fit_1))
+```

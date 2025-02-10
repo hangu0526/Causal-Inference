@@ -1,0 +1,242 @@
+---
+title: "Pairwork"
+author: "Hana Kwon & Alex Park"
+date: "2024-10-30"
+output: html_document
+---
+
+### \*Research Topic: **Exchange Rate Stability and Foreign Direct Investment (FDI) Inflows**
+
+-   Hypothesis: **Countries with stable exchange rates attract more foreign direct investment inflows.**
+
+    -   Independent Variable (IV): **Exchange rate stability index (exchange_rate_stable_TR).**
+
+    -   Dependent Variable (DV): **FDI inflows (fdiflows_UNCTAD).**
+
+    -   Treatment Variable (z): **Exchange rate stability (binary: 1 = stable, 0 = unstable).**
+
+    -   Pre-treatment Variables (x): **GDP per capita (gdppc_WDI), primary energy consumption (pec_MC).**
+
+-   Data: The International Political Economy Data Resource - <https://dataverse.harvard.edu/file.xhtml?persistentId=doi:10.7910/DVN/X093TV/KSITOCLinks> to an external site.
+
+### **Pair Work - All Assignment Questions**
+
+#### ***Class 1b***
+
+*In pairs: Consider a topic of interest to you for which you can download or collect some data. You will use this example throughout the course to work though the concepts and methods covered in the book, so the example should be worth your time and should have some complexity. For this first exercise, discuss your applied goals in studying this example and how the data can address these goals.*
+
+#### ***Class 2b***
+
+*In pairs: Continuing example from your earlier in-pairs assignment:*
+
+-   *Graph your data in three different ways. For each graph, write one or two sentences summarizing it.*
+
+-   *In two or three sentences, discuss issues of validity and reliability with your data. In two or three more sentences, say how you could you gather additional data, at least in theory, to address these issues..*
+
+    2b code (9/12) - Alex’s version
+
+    ```{r}
+    library(tidyverse)
+    library(dplyr)
+    library(ggplot2)
+
+    ipe <- readRDS("~/Desktop/2)Causal Inference/In Pair/4. Graham_Tucker_IPE_v5.RDS")
+
+    ipe %>% 
+      select(country, exchange_rate_stable_TR,fdiflows_UNCTAD, gdppc_WDI) %>% 
+      filter(between(year, 1980,2000) ) #%>% view()
+
+    plot_dataset <- function(ipe, start_year = 1980, end_year = 2000){
+      filter_data <- ipe %>%
+        filter(between(year, start_year, end_year)) %>%
+        select(country, year, exchange_rate_stable_TR, fdiflows_UNCTAD)
+      
+      plot_rate <- ggplot(filter_data, aes(x = year, y = exchange_rate_stable_TR)) + 
+        geom_point() +
+        labs(title = "Exchange Rate Stability Over Time", 
+             x = "Year",
+             y = "ERS") +
+        theme_minimal()
+      
+      plot_flow <- ggplot(filter_data, aes(x = year, y = fdiflows_UNCTAD)) +
+        geom_point() +
+        labs(title = "FDI Flows Over Time",
+             x = "Year",
+             y = "FDI Flows") +
+        theme_minimal()
+      
+      return(list(exchange_rate_plot = plot_rate, fdi_plot = plot_flow))
+      
+    }
+
+    plots <- plot_dataset(ipe)
+
+    print(plots$exchange_rate_plot)
+    print(plots$fdi_plot)
+
+    ```
+
+    #### ***Class 4a***
+
+    *4. In pairs: Continuing your applied example, construct a probability model that is relevant to your question at hand and use it to simulate some fake data. Graph your simulated data, compare to a graph of real data, and discuss the connections between your model and your larger substantive questions.*
+
+    4b code (9/25) - Alex’s version
+
+    ```{r}
+    library(tidyverse)
+    library(dplyr)
+    library(ggplot2)
+    library(rstanarm)
+
+    ipe_data <- readRDS("~/Desktop/2)Causal Inference/In Pair/4. Graham_Tucker_IPE_v5.RDS")
+    filtered_data <- ipe_data %>% select(country, exchange_rate_stable_TR, fdiflows_UNCTAD, gdppc_WDI) %>% filter(between(year, 1980, 2000))
+
+    model_fit <- stan_glm(exchange_rate_stable_TR ~ fdiflows_UNCTAD, data = filtered_data)
+
+    print(model_fit, digits = 2)
+    plot(filtered_data$exchange_rate_stable_TR, filtered_data$fdiflows_UNCTAD, main = "Correlation Between FDI and Exchange Rate Stability", xlab = "Exchange Rate Stability", ylab = "FDI Flows")
+    intercept <- coef(model_fit)[1]
+    slope <- coef(model_fit)[2]
+    abline(intercept, slope)
+
+    ```
+
+    ```{r}
+    library(tidyverse)
+    library(dplyr)
+    library(ggplot2)
+    library(rstanarm)
+
+    ipe_data <- readRDS("~/Desktop/2)Causal Inference/In Pair/4. Graham_Tucker_IPE_v5.RDS")
+    filtered_data <- ipe_data %>% select(country, exchange_rate_stable_TR, fdiflows_UNCTAD, gdppc_WDI) %>% filter(between(year, 1980, 2000))
+
+    model_fit <- stan_glm(exchange_rate_stable_TR ~ fdiflows_UNCTAD, data = filtered_data)
+
+    print(model_fit, digits = 2)
+    plot(filtered_data$exchange_rate_stable_TR, filtered_data$fdiflows_UNCTAD, main = "Correlation Between FDI and Exchange Rate Stability", xlab = "Exchange Rate Stability", ylab = "FDI Flows")
+    intercept <- coef(model_fit)[1]
+    slope <- coef(model_fit)[2]
+    abline(intercept, slope)
+    ```
+
+    ```{r}
+    library(tidyverse)
+    library(dplyr)
+    library(ggplot2)
+    library(rstanarm)
+
+    ipe_data <- readRDS("~/Desktop/2)Causal Inference/In Pair/4. Graham_Tucker_IPE_v5.RDS")
+    filtered_data <- ipe_data %>% select(country, exchange_rate_stable_TR, fdiflows_UNCTAD, gdppc_WDI) %>% filter(between(year, 1980, 2000))
+
+    model_fit <- stan_glm(exchange_rate_stable_TR ~ fdiflows_UNCTAD, data = filtered_data)
+
+    print(model_fit, digits = 2)
+    plot(filtered_data$exchange_rate_stable_TR, filtered_data$fdiflows_UNCTAD, main = "Correlation Between FDI and Exchange Rate Stability", xlab = "Exchange Rate Stability", ylab = "FDI Flows")
+    intercept <- coef(model_fit)[1]
+    slope <- coef(model_fit)[2]
+    abline(intercept, slope)
+    ```
+
+    #### ***Class 5a***
+
+    *3. In pairs: Continuing your applied example, fit a linear regression with a single predictor, graph the data along with the fitted line, and interpret the estimated parameters and their uncertainties.*
+
+    5a code (10/2) - Hana’s version
+
+    ```{r}
+    # Load necessary libraries
+    library(tidyverse)
+    library(dplyr)
+    library(ggplot2)
+    library(rstanarm)
+
+    # Load the dataset
+    ipe_data <- readRDS("~/Desktop/2)Causal Inference/In Pair/4. Graham_Tucker_IPE_v5.RDS")
+
+    # Filter the data for the relevant years (1980 to 2000)
+    filtered_data <- ipe_data %>%
+      select(country, exchange_rate_stable_TR, fdiflows_UNCTAD, gdppc_WDI) %>%
+      filter(between(year, 1980, 2000))
+
+    # Fit the linear regression model with FDI inflows as a predictor for Exchange Rate Stability
+    model_fit <- stan_glm(exchange_rate_stable_TR ~ fdiflows_UNCTAD, data = filtered_data)
+
+    # Print the summary of the model to interpret coefficients and uncertainties
+    print(model_fit, digits = 2)
+
+    # Plot the data points and add the fitted regression line with even smaller axis limits
+    ggplot(filtered_data, aes(x = exchange_rate_stable_TR, y = fdiflows_UNCTAD)) +
+      geom_point() +
+      geom_smooth(method = "lm", se = FALSE, color = "blue") +
+      scale_y_continuous(limits = c(0, 1000)) +  # Limit y-axis range to 0-10000 to zoom in more
+      scale_x_continuous(limits = c(0, 1)) +      # Keep x-axis within 0 to 1
+      labs(title = "Correlation Between Exchange Rate Stability and FDI Flows",
+           x = "Exchange Rate Stability Index",
+           y = "FDI Flows (USD)") +
+      theme_minimal()
+
+    # Extract intercept and slope from the model to interpret
+    intercept <- coef(model_fit)[1]
+    slope <- coef(model_fit)[2]
+
+    # Print the intercept and slope values
+    cat("Intercept:", intercept, "\\nSlope:", slope, "\\n")
+
+
+    ```
+
+    #### *Class 6a*
+
+    *4. In pairs: Continuing your applied example,  t a linear regression with multiple predictors and interpret the estimated parameters and their uncertainties. Your regression should include at least one interaction term.*
+
+    6a code (10/9) - Alex’s version
+
+    ```{r}
+    library(tidyverse)
+    library(dplyr)
+    library(rstanarm)
+
+    ipe <- readRDS("~/Desktop/2)Causal Inference/In Pair/4. Graham_Tucker_IPE_v5.RDS")
+
+    dataframe <- ipe %>% 
+      select(year, country, exchange_rate_stable_TR,fdiflows_UNCTAD, gdppc_WDI) %>% 
+      filter(between(year, 1980,2000) )
+
+    fit_1 <- stan_glm(fdiflows_UNCTAD ~ exchange_rate_stable_TR + factor(year) + exchange_rate_stable_TR:factor(year), data = dataframe, refresh =0)
+     
+    print(summary(fit_1))
+    ```
+
+    #### *Class 8b*
+
+    *In pairs: Continuing your applied example, [frame a substantive question in terms of the effect of a binary treatment.]{.underline} For this example, [explain what are the outcome variable y, the treatment variable z, the pre-treatment variables x, and the potential outcomes y0 and y1.]{.underline}*
+
+    -   **Substantive Question:** “Does maintaining a stable exchange rate (as a binary treatment) significantly increase Foreign Direct Investment (FDI) inflows in a country?”
+
+    -   **Variables and Potential Outcomes**
+
+        -   **Outcome Variable (** y **)**: **FDI inflows** (measured as fdiflows_UNCTAD). This is the main dependent variable, representing the amount of foreign direct investment a country attracts.
+
+        -   **Treatment Variable (** z **)**: **Exchange Rate Stability** (exchange_rate_stable_TR). This is a binary variable where:
+
+            -   z = 1 : Stable exchange rate.
+
+            -   z = 0 : Unstable exchange rate.
+
+            -   The treatment is considered “applied” if the country maintains a stable exchange rate, as it is hypothesized that this could attract more FDI inflows by providing a less volatile environment for foreign investors.
+
+        -   **Pre-treatment Variables (** x **)**:
+
+            -   **GDP per capita** (gdppc_WDI): Used as a control to account for the economic status and overall wealth of the country, which may influence FDI inflows.
+
+            -   **Primary Energy Consumption** (pec_MC): Serves as an indicator of the industrial and economic activity in the country, which could also be a factor affecting FDI attractiveness.
+
+        -   **Potential Outcomes**:
+
+            -   y_0 : The FDI inflows when the exchange rate is unstable ( z = 0 ).
+
+            -   y_1 : The FDI inflows when the exchange rate is stable ( z = 1 ).
+
+                \>\> These potential outcomes help frame our inquiry into how exchange rate stability (treatment) might affect FDI inflows, adjusting for economic controls through the pre-treatment variables.
+
+    **Explanation:** The model assumes that exchange rate stability, as a treatment, could influence the decision-making of foreign investors. By comparing FDI inflows between countries with stable versus unstable exchange rates, while controlling for GDP per capita and energy consumption, we can better isolate the effect of exchange rate stability on FDI.

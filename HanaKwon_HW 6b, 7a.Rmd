@@ -1,0 +1,384 @@
+---
+title: "HW_241016"
+author: "Hana Kwon"
+date: "2024-10-16"
+output: pdf_document
+---
+
+#### **[POLS4720] 'Applied Regression & Causal Inference'**
+
+# **Homework**
+
+### **by Hana Kwon**
+
+------------------------------------------------------------------------
+
+### [**Class 6b:**]{.underline} Assumptions, diagnostics, and evaluation
+
+**#1.**
+
+**#1-a.** **Explain** **Coefficient in Comparative Terms**
+
+The given regression model is:
+
+**[post test] = 30 + 0.7 x [pre test] + error**
+
+Here, the coefficient 0.7 means that [for every one-point increase in the pre-test score, the post-test score is expected to increase by 0.7 points on average.]{.underline}
+
+**#1-b.** **R\^2=1 Interpretation**
+
+If R\^2=1, it means that [the model perfectly explains all the variance in the post-test scores.]{.underline} This means that [the pre-test score perfectly predicts the post-test score, with no error left unexplained.]{.underline}
+
+**#1-c.** **R\^2=0 Interpretation**
+
+If R\^2=0, it means that [the model does not explain any of the variance in the post-test scores.]{.underline} This suggests that [the pre-test scores provide no information about the post-test scores]{.underline}.
+
+------------------------------------------------------------------------
+
+**#2.**
+
+**#2-a.** **Simulation of 50 Data Points**
+
+Let's simulate data using the model **y_i** = **a** x **exp{-b x (x_i)}** x **exp(error_i)** , where *a = 0.1 , b = 0.2* , and the *error follows a normal distribution with a mean of 0 and standard deviation of 0.2*.
+
+The x_i values are drawn randomly from the range (0, 20).
+
+```{r}
+set.seed(123)  # For reproducibility
+n <- 50
+a <- 0.1
+b <- 0.2
+
+# Random x values between 0 and 20
+x <- runif(n, 0, 20)  
+
+# Error term
+error <- rnorm(n, mean = 0, sd = 0.2)  
+y <- a * exp(-b * x) * exp(error)
+
+data <- data.frame(x = x, y = y)
+```
+
+**#2-b.** **Fit a Linear Regression**
+
+Next, let's now fit a linear regression model to the data and plot the results along with the fitted line.
+
+```{r}
+# Fit the linear regression model
+fit <- lm(y ~ x, data = data)
+
+# Plot the data and the fitted regression line
+plot(data$x, data$y, main = "Data and Fitted Line", xlab = "x", ylab = "y", pch = 16)
+abline(fit, col = "red")
+```
+
+**#2-c.** **Plot the Residuals**
+
+I will plot the residuals of the fitted model to check for any problems.
+
+If the residuals show [a pattern]{.underline}, it indicates that a linear model might not be the best fit for this data.
+
+```{r}
+# Residuals vs. x plot
+plot(data$x, residuals(fit), main = "Residuals vs. x", xlab = "x", ylab = "Residuals", pch = 16)
+abline(h = 0, col = "red")
+```
+
+\>\> Looking at the residuals plot, there is [a clear pattern where the residuals are not randomly scattered around zero]{.underline}. Instead, they tend to [follow a curve, with negative residuals for lower values of x and positive residuals for higher values of x]{.underline} .
+
+-\> This pattern suggests that [*the relationship between x and y is non-linear,*]{.underline} and therefore, [a simple linear regression model is not appropriate for this data.]{.underline}
+
+-\> Thus, it seems that a more complex model, such as a non-linear model or a transformation of the variables, would likely be more suitable to capture the underlying relationship.
+
+------------------------------------------------------------------------
+
+**#3.**
+
+**#3-1. Regression with 'beauty.csv' Data**
+
+Using the **beauty.csv** data, let's run a regression to predict [course evaluations (eval) using beauty scores (beauty)]{.underline} while adjusting for other predictors.
+
+```{r}
+# Load necessary libraries
+library("rprojroot")
+library("rstanarm")
+library("ggplot2")
+library("bayesplot")
+theme_set(bayesplot::theme_default(base_family = "sans"))
+
+# Load the data from the provided path
+beauty <- read.csv("~/Desktop/2)Causal Inference/ROS-Examples-master/Beauty/data/beauty.csv")
+head(beauty)
+
+# Check the column names in the dataset
+names(beauty)
+
+# Fit the regression model with 'beauty' as the predictor
+fit_beauty <- lm(eval ~ beauty, data = beauty)
+
+# Plot the data and fitted model
+plot(beauty$beauty, beauty$eval, main = "Beauty vs. Course Evaluation", xlab = "Beauty", ylab = "Evaluation", pch = 16)
+abline(fit_beauty, col = "blue")
+
+# Extract residual standard deviation and plot residuals
+residual_sd <- summary(fit_beauty)$sigma
+residuals_beauty <- residuals(fit_beauty)
+
+plot(fitted(fit_beauty), residuals_beauty, main = "Residuals vs Fitted Values", xlab = "Fitted Values", ylab = "Residuals", pch = 16)
+abline(h = 0, col = "red")
+```
+
+**#3-b. Fitting Other Models**
+
+**1)** **Model 1:** lm(eval \~ beauty + age)
+
+```{r}
+# Model 1: Basic linear model with beauty and one additional predictor (replace 'other_predictor')
+fit_model1 <- lm(eval ~ beauty + age, data = beauty)  # Example using 'age' as a second predictor
+
+# Summary
+summary(fit_model1)
+```
+
+\>\>
+
+-   **Intercept**: The expected evaluation score when both beauty and age are 0. This is the baseline.
+
+-   **Beauty Coefficient**: The change in evaluation score for a one-unit increase in beauty, holding age constant.
+
+-   **Age Coefficient**: The change in evaluation score for a one-unit increase in age, holding beauty constant.
+
+**2) Model 2:** lm(eval \~ beauty \* age)
+
+```{r}
+# Model 2: Adding interaction between beauty and another predictor (replace 'other_predictor')
+fit_model2 <- lm(eval ~ beauty * age, data = beauty)  # Interaction between beauty and age
+
+# Summary 
+summary(fit_model2)
+```
+
+-   **Intercept**: The expected evaluation score when both beauty and age are 0.
+
+-   **Beauty Coefficient**: The change in evaluation score for a one-unit increase in beauty, when age is 0.
+
+-   **Age Coefficient**: The change in evaluation score for a one-unit increase in age, when beauty is 0.
+
+-   **Interaction Term (Beauty \* Age)**: This term captures how the effect of beauty on evaluation changes depending on the value of age. If significant, it suggests that the effect of beauty is different for people of different ages.
+
+------------------------------------------------------------------------
+
+**#4.**
+
+**#4-a. Interpretation of Economic Growth Coefficient**
+
+The coefficient for economic growth in the model indicates [the average change in the incumbent party’s vote share associated with a one-unit increase in economic growth.]{.underline} This is *purely observational*, without implying that economic growth causes changes in vote share.
+
+**#4-b. Difficulties in Causal Interpretation**
+
+Interpreting the coefficient as the [causal effect of economic growth on the incumbent party’s vote share]{.underline} is [challenging]{.underline} [due to potential confounding variables]{.underline}.
+
+\>\>For example, other factors (some events like external social issues, campaign expenditure/spending, and/or global events that are unexpected) could also influence vote shares, and these might be correlated with economic growth, [**making it hard to isolate the true causal effect.**]{.underline}
+
+------------------------------------------------------------------------
+
+### [**Class 7a:** Transformations and regression]{.underline}
+
+**#1.**
+
+[Task:]{.underline} Compute and interpret the coefficients after scaling, centering, and transforming variables in different ways.
+
+**#1-a. Scaled variable height cm \<- 2.54 \* height**
+
+\>\> First, let's convert height from inches to centimeters and adjusting the coefficients accordingly.
+
+-   Since we are scaling height from inches to centimeters,
+
+    -   the height coefficient will be multiplied by 2.54, and
+
+    -   the interaction term involving height will also be adjusted in the similar sense.
+
+    -   the intercept and the coefficient for male will remain unchanged.
+
+```{r}
+# Original coefficients
+intercept <- -9.3
+coef_height <- 0.4
+coef_male <- -29.3
+coef_interaction <- 0.6
+
+# Convert height to centimeters (height cm = 2.54 * height)
+coef_height_cm <- coef_height / 2.54
+coef_interaction_cm <- coef_interaction / 2.54
+
+# Display new coefficients
+intercept
+coef_height_cm
+coef_male
+coef_interaction_cm
+```
+
+**#1-b. Centered and scaled variable height c cm \<- 2.54 \* (height - 66)**
+
+-   When centering,
+
+    -   the intercept is adjusted.
+
+    -   The coefficient for height remains the same since scaling doesn’t affect it.
+
+    -   The interaction term for height and male will also remain unchanged.
+
+```{r}
+# Center height around 66 inches before scaling
+height_centered <- (66 - mean(66)) * 2.54
+
+# Display new intercept
+new_intercept <- intercept - coef_height * 66
+new_intercept
+coef_height_cm
+coef_male
+coef_interaction_cm
+```
+
+**#1-c. Scaled variable earnings dollars \<- 1000 \* earnings**
+
+We [multiply the outcome (earnings) by 1000.]{.underline} This scales all the coefficients of the model by 1000.
+
+When earnings are multiplied by 1000, [all coefficients will also be scaled by a factor of 1000,]{.underline} [while the relationships between variables will remain the same.]{.underline}
+
+```{r}
+# Scale all coefficients by 1000
+intercept_dollars <- intercept * 1000
+coef_height_dollars <- coef_height * 1000
+coef_male_dollars <- coef_male * 1000
+coef_interaction_dollars <- coef_interaction * 1000
+
+# Display new coefficients
+intercept_dollars
+coef_height_dollars
+coef_male_dollars
+coef_interaction_dollars
+```
+
+------------------------------------------------------------------------
+
+**#2.**
+
+**#2-a. Regression model y = a + bx + [error]**
+
+-   **SDs and correlation provided:**
+
+    -   the standard deviation of x is 20
+
+    -   the standard deviation of y is 0.2
+
+    -   the correlation between x and y is -0.4
+
+The regression slope b can be calculated using the formula:
+
+**b = r x [{SD(y)} / {SD(x)}]**
+
+-\> where r is the correlation between x and y
+
+```{r}
+# Given data
+sd_x <- 20
+sd_y <- 0.2
+cor_xy <- -0.4
+
+# Calculate the slope
+b <- cor_xy * (sd_y / sd_x)
+b
+```
+
+**#2-b. Regression model y** **= 0.2 + 0.3x** **+ [error]**
+
+-   **SDs and correlation provided:**
+
+    -   the standard deviation of x is 20
+
+    -   the standard deviation of y is 0.2
+
+    -   the correlation between x and y is -0.4Explanation:
+
+Because we are given the regression equation, I can use the standard deviations of x and y to find the correlation.
+
+The formula for the correlation is:
+
+**r = b x [{SD(y)} / {SD(x)}]**
+
+```{r}
+# Given data
+sd_x <- 2
+sd_y <- 0.4
+b <- 0.3
+
+# Calculate the correlation
+r <- b * (sd_x / sd_y)
+r
+```
+
+------------------------------------------------------------------------
+
+**#3.**
+
+**#3-a.** **Regression predicting weight using age10 = age / 10**
+
+-   The provided coefficients can be used to plot the fitted regression line of weight vs. age.
+
+-   The intercept is 148.7, and
+
+-   the slope is 1.8 per age10 (which corresponds to an increase of 1.8 pounds for each 10 years of age).
+
+```{r}
+# Simulate data for the plot
+age <- seq(18, 80, by = 1)
+age10 <- age / 10
+weight <- 148.7 + 1.8 * age10
+
+# Plot weight vs. age
+plot(age, weight, type = "l", col = "blue", lwd = 2, 
+     main = "Regression of Weight on Age",
+     xlab = "Age (years)", ylab = "Weight (pounds)")
+```
+
+**#3-b.** **Add quadratic term for age: age10_sq = (age / 10)\^2**
+
+In this problem, I need to include [a squared term for age]{.underline}, called **age10_sq**, which is *the square of age divided by 10*. This means [I’m adding a curved line]{.underline} [(curvature)]{.underline} [to the graph instead of just a straight one.]{.underline} The number **-2.0** for the squared age makes the curve bend.
+
+```{r}
+# Simulate data for the plot
+age <- seq(18, 80, by = 1)
+age10 <- age / 10
+
+# Linear regression (for 3-a)
+weight_linear <- 148.7 + 1.8 * age10
+
+# Plot linear regression of weight on age first
+plot(age, weight_linear, type = "l", col = "blue", lwd = 2, 
+     main = "Regression of Weight on Age",
+     xlab = "Age (years)", ylab = "Weight (pounds)")
+
+# Quadratic regression (for 3-b)
+age10_sq <- age10^2
+weight_quadratic <- 108.0 + 21.3 * age10 - 2.0 * age10_sq
+
+# Add quadratic regression line to the existing plot
+lines(age, weight_quadratic, col = "red", lwd = 2)
+```
+
+------------------------------------------------------------------------
+
+**#4.**
+
+**#4-a. Why no indicator for the youngest group (age 18–29)?**
+
+\>\> In a regression model, one category from a set of categorical variables is typically left out as the **“reference” category**. (This is done to avoid multicollinearity, which would make it impossible to estimate the coefficients.)
+
+The excluded category (here, age18_29) serves as the **baseline**, and the coefficients for the other categories (age30_44, age45_64, age65_up) represent **the difference in the dependent variable (weight) relative to this baseline group.**
+
+*In this case, [the youngest group (age18_29) is the reference category]{.underline}, and [all other age group effects are compared to it.]{.underline}*
+
+**#4-b. Sketch the scattorplot with fitted lines for the different age groups**
+
+![](images/IMG_1146-02.jpg)

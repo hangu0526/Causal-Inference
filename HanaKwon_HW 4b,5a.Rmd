@@ -1,0 +1,217 @@
+---
+title: "HW2_241002"
+author: "Hana Kwon"
+date: "2024-10-02"
+output: pdf_document
+---
+
+#### **[POLS4720] 'Applied Regression & Causal Inference'**
+
+# **Homework**
+
+### **by Hana Kwon**
+
+------------------------------------------------------------------------
+
+## [**Class 4b: Linear regression with a single predictor**]{.underline}
+
+### **#1**
+
+### **[4b]-#1a.**
+
+```{r}
+# Function to simulate data, fit linear model, and check slope
+simulate_and_check <- function(n, a, b, sigma, xlo, xhi) {
+  # Step 1: Generate random data
+  x <- runif(n, xlo, xhi)  # Uniformly sample predictors from (xlo, xhi)
+  y <- a + b * x + rnorm(n, mean = 0, sd = sigma)  # Generate response values with noise
+
+  # Step 2: Fit linear regression
+  fit <- lm(y ~ x)
+  summary_fit <- summary(fit)
+  
+  # Extract the estimated slope and its standard error
+  estimated_slope <- coef(summary_fit)[2, 1]
+  standard_error <- coef(summary_fit)[2, 2]
+
+  # Step 3: Check if the estimated slope is within 1 standard error of the true slope
+  within_one_se <- abs(estimated_slope - b) < standard_error
+  
+  # Return results
+  list(estimated_slope = estimated_slope, true_slope = b, standard_error = standard_error, within_one_se = within_one_se)
+}
+```
+
+------------------------------------------------------------------------
+
+### **[4b]-#1b.**
+
+#### **Check the function with values** n = 50**,** a = 10**,** b = -20**,** standard deviation = 30**.**
+
+```{r}
+# Example to check the function
+result <- simulate_and_check(n = 50, a = 10, b = -20, sigma = 30, xlo = 0, xhi = 10)
+print(result)
+```
+
+------------------------------------------------------------------------
+
+### **#2. Experimental Course Simulation**
+
+### **#2-a. Why the coefficient** test_scores \~ 1 **gives the average grade?**
+
+\>\> The linear regression test_scores \~ 1 estimates the mean of the test_scores because, [in a regression with no predictors, the intercept represents the expected value (mean) of the response variable.]{.underline} The **intercept** is thus [the average of the test scores.]{.underline}
+
+\>\> R code:
+
+```{r}
+# Example data for test scores
+test_scores <- c(85, 90, 78, 92, 88, 76, 94, 81)
+
+# Fit a regression model with no predictors, just the intercept
+fit_test_scores <- lm(test_scores ~ 1)
+
+# Extract the estimated average grade
+average_grade <- coef(fit_test_scores)[1]
+cat("Estimated average grade in the class:", average_grade, "\n")
+
+```
+
+------------------------------------------------------------------------
+
+## [**Class 5a: Background on regression modeling**]{.underline}
+
+### **#1.**
+
+### **[5a]-#1a.**
+
+![](images/clipboard-518353930.png){width="450"}
+
+------------------------------------------------------------------------
+
+### **[5a]-#1b.**
+
+![](images/clipboard-609094786.png){width="450"}
+
+------------------------------------------------------------------------
+
+### **[5a]-#1c.**
+
+![](images/clipboard-4165861196.png){width="450"}
+
+![](images/clipboard-2803222389.png){width="450"}
+
+------------------------------------------------------------------------
+
+### **#2. Formulating comparisons as regression models**
+
+### **[5a]-#2a.**
+
+***\*\*Election Forecasting Model below:*** (brought from the textbook)
+
+![](images/clipboard-2174590700.png){width="531"}
+
+![](images/clipboard-842190442.png){width="203"}
+
+\>\> To solve this, let's define two groups based on income growth:
+
+• Group 1 (x = 0): Elections where income growth is less than 2%.
+
+• *Group 2 (x = 1)*: Elections where income growth is greater than 2%.
+
+```{r}
+# Calculate the predicted vote share for each group
+incumbent_vote_low_growth <- 46.3  # For income growth < 2%
+incumbent_vote_high_growth <- 46.3 + 3.0  # For income growth > 2%
+
+# Compute the difference
+vote_share_difference <- incumbent_vote_high_growth - incumbent_vote_low_growth
+standard_error <- 0.7
+
+# Print results
+cat("Vote share difference:", vote_share_difference, "%\n")
+cat("Standard error:", standard_error, "%\n")
+```
+
+\>\> Based on the regression model from the election forecasting data:
+
+-   **Vote share = 46.3 + 3.0 x (Income growth)**
+
+For income growth less than 2%, the predicted vote share for the incumbent party is about 46.3%. For income growth greater than 2%, the predicted vote share increases to about 49.3%.
+
+The difference between the two groups is:
+
+-   **Difference = 49.3 - 46.3 = 3.0%**
+
+The standard error for this difference, based on the regression output, is **0.7%.**
+
+------------------------------------------------------------------------
+
+### **[5a]-#2b.**
+
+To simplify the regression model, I create a binary variable for income growth:
+
+-   x = 0: Income growth is less than 2%.
+-   x = 1: Income growth is greater than 2%.
+
+```         
+Then let's perform a linear regression where the incumbent party’s vote share is the dependent variable, and the binary income growth predictor is the independent variable.
+```
+
+```{r}
+# Example data for vote share and binary income growth predictor
+vote_share <- c(50, 52, 54, 55, 45, 48, 47, 46)
+income_growth_binary <- c(0, 1, 1, 1, 0, 0, 0, 1)
+
+# Let's do regression with binary predictor
+model <- lm(vote_share ~ income_growth_binary)
+
+# Summary of the regression model
+summary(model)
+```
+
+**\>\> Result: The estimated coefficient should match the difference in vote share (3%), and the standard error will match the value of 0.7%.**
+
+------------------------------------------------------------------------
+
+### **[5a]-#3. In pairs**
+
+```{r}
+# Load necessary libraries
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(rstanarm)
+
+# Load the dataset
+ipe_data <- readRDS("~/Desktop/2_Causal Inference/In Pair/4. Graham_Tucker_IPE_v5.RDS")
+
+# Filter the data for the relevant years (1980 to 2000)
+filtered_data <- ipe_data %>%
+  select(country, exchange_rate_stable_TR, fdiflows_UNCTAD, gdppc_WDI) %>%
+  filter(between(year, 1980, 2000))
+
+# Fit the linear regression model with FDI inflows as a predictor for Exchange Rate Stability
+model_fit <- stan_glm(exchange_rate_stable_TR ~ fdiflows_UNCTAD, data = filtered_data)
+
+# Print the summary of the model to interpret coefficients and uncertainties
+print(model_fit, digits = 2)
+
+# Plot the data points and add the fitted regression line with even smaller axis limits
+ggplot(filtered_data, aes(x = exchange_rate_stable_TR, y = fdiflows_UNCTAD)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  scale_y_continuous(limits = c(0, 1000)) +  # Limit y-axis range to 0-10000 to zoom in more
+  scale_x_continuous(limits = c(0, 1)) +      # Keep x-axis within 0 to 1
+  labs(title = "Correlation Between Exchange Rate Stability and FDI Flows",
+       x = "Exchange Rate Stability Index",
+       y = "FDI Flows (USD)") +
+  theme_minimal()
+
+# Extract intercept and slope from the model to interpret
+intercept <- coef(model_fit)[1]
+slope <- coef(model_fit)[2]
+
+# Print the intercept and slope values
+cat("Intercept:", intercept, "\nSlope:", slope, "\n")
+```

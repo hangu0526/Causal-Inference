@@ -1,0 +1,287 @@
+---
+title: "HW_241030"
+author: "Hana Kwon"
+date: "2024-10-30"
+output: pdf_document
+---
+
+#### **[POLS4720] 'Applied Regression & Causal Inference'**
+
+# **Homework**
+
+### **by Hana Kwon**
+
+------------------------------------------------------------------------
+
+### [**Class 8b:Working with logistic regression**]{.underline} **- Chapter 14**
+
+**#1.**
+
+**#1-a.**
+
+To visualize this curve, we will use the logistic function, where: $$ Pr(y = 1) = \frac{1}{1 + e^{-(−2 + 3x)}} $$
+
+```{r}
+# Define function for logistic probability
+logit <- function(z) {
+  1 / (1 + exp(-z))
+}
+
+# Generate values for x and calculate Pr(y = 1)
+x <- seq(0, 5, length.out = 100)
+p_y_1 <- logit(-2 + 3 * x)
+
+# Plot the curve
+plot(x, p_y_1, type = "l", col = "blue", lwd = 2,
+     ylab = "Pr(y = 1)", xlab = "x",
+     main = expression("Pr(y = 1) = logit^{-1}(-2 + 3 * x)"))
+```
+
+**#1-b.**
+
+Here, the logistic function is modified by the term involving (z):
+
+$$ Pr(y = 1) = \frac{1}{1 + e^{-(−2 + 3x - 3z)}} $$
+
+```{r}
+# Set values of z
+z_values <- c(0, 1, 2)
+colors <- c("blue", "red", "green")
+
+# Plot the curve for different values of z
+plot(x, logit(-2 + 3 * x - 3 * z_values[1]), type = "l", col = colors[1], lwd = 2,
+     ylab = "Pr(y = 1)", xlab = "x",
+     main = expression("Pr(y = 1) = logit^{-1}(-2 + 3 * x - 3 * z)"))
+
+# Add lines for z = 1 and z = 2
+for (i in 2:3) {
+  lines(x, logit(-2 + 3 * x - 3 * z_values[i]), col = colors[i], lwd = 2)
+}
+
+# Add legend
+legend("bottomright", legend = paste("z =", z_values), col = colors, lwd = 2)
+```
+
+**#2.**
+
+**#2-a.\
+**The model: $$ Pr(y = 1) = \frac{1}{1 + e^{-(−0.2 + 0.3x - 1.5z -0.xz)}} $$
+
+For each ( z ):
+
+-   (z=0): ( Pr(y = 1) = \\frac{1}{1 + e\^{-(−0.2 + 0.3x)}} )
+
+    $$ Pr(y = 1) = \frac{1}{1 + e^{-(−0.2 + 0.3x)}} $$
+
+-   (z=1): ( Pr(y = 1) = \\frac{1}{1 + e\^{-(−0.2 + 0.3x - 1.5 - 0.2x)}} )
+
+    $$ Pr(y = 1) = \frac{1}{1 + e^{-(−0.2 + 0.3x - 1.5 -0.2x)}} $$
+
+-   (z=2): ( Pr(y = 1) = \\frac{1}{1 + e\^{-(−0.2 + 0.3x - 3 - 0.4x)}} )
+
+    $$ Pr(y = 1) = \frac{1}{1 + e^{-(−0.2 + 0.3x - 3 -0.4x)}} $$
+
+**#2-b.**
+
+```{r}
+# Model with z-values 0, 1, 2
+plot(x, logit(-0.2 + 0.3 * x), type = "l", col = colors[1], lwd = 2,
+     ylab = "Pr(y = 1)", xlab = "x",
+     main = expression("Pr(y = 1) = logit^{-1}(-0.2 + 0.3 * x - 1.5 * z - 0.2 * x * z)"))
+
+# Plot for each z = 1, z = 2
+lines(x, logit(-0.2 + 0.3 * x - 1.5 - 0.2 * x), col = colors[2], lwd = 2)
+lines(x, logit(-0.2 + 0.3 * x - 3 - 0.4 * x), col = colors[3], lwd = 2)
+
+# Legend
+legend("bottomright", legend = paste("z =", z_values), col = colors, lwd = 2)
+```
+
+**#2-c.**
+
+\>\> From the equations above, the three curves will intersect where the effects of (z) terms cancel each other out.
+
+\>\> We are working with the logistic regression model:
+
+$$ Pr(y = 1) = \frac{1}{1 + e^{-(−0.2 + 0.3x - 1.5z -0.2xz)}} $$with x in the range (0, 10) and z taking values 0, 1, and 2 .
+
+1.  **To determine the crossing point**, we can set up equations where the curves for different values of  z  intersect:
+    -   For curves with  z = 0 ,  z = 1 , and  z = 2 , we equate their probabilities by finding  x  where their logit functions match.
+2.  **Solve these equations**: Setting the logit transformations equal gives insight into where these curves may cross.
+
+\>\> **Why They Cross**? : The crossing point for logistic models with interaction terms often occurs at a particular value of  x  where the combined effect of  x  and  z  leads to similar predicted probabilities. For this model, we’d expect that certain values of  x  will yield similar results across  z , balancing out the coefficients in the model’s linear predictor.
+
+***#3. In Pairs***
+
+-   **Substantive Question:** “Does maintaining a stable exchange rate (as a binary treatment) significantly increase Foreign Direct Investment (FDI) inflows in a country?”
+
+-   **Variables and Potential Outcomes**
+
+    -   **Outcome Variable (** y **)**: **FDI inflows** (measured as fdiflows_UNCTAD). This is the main dependent variable, representing the amount of foreign direct investment a country attracts.
+
+    -   **Treatment Variable (** z **)**: **Exchange Rate Stability** (exchange_rate_stable_TR). This is a binary variable where:
+
+        -   z = 1 : Stable exchange rate.
+
+        -   z = 0 : Unstable exchange rate.
+
+        -   The treatment is considered “applied” if the country maintains a stable exchange rate, as it is hypothesized that this could attract more FDI inflows by providing a less volatile environment for foreign investors.
+
+    -   **Pre-treatment Variables (** x **)**:
+
+        -   **GDP per capita** (gdppc_WDI): Used as a control to account for the economic status and overall wealth of the country, which may influence FDI inflows.
+
+        -   **Primary Energy Consumption** (pec_MC): Serves as an indicator of the industrial and economic activity in the country, which could also be a factor affecting FDI attractiveness.
+
+    -   **Potential Outcomes**:
+
+        -   y_0 : The FDI inflows when the exchange rate is unstable ( z = 0 ).
+
+        -   y_1 : The FDI inflows when the exchange rate is stable ( z = 1 ).
+
+            \>\> These potential outcomes help frame our inquiry into how exchange rate stability (treatment) might affect FDI inflows, adjusting for economic controls through the pre-treatment variables.
+
+**Explanation:** The model assumes that exchange rate stability, as a treatment, could influence the decision-making of foreign investors. By comparing FDI inflows between countries with stable versus unstable exchange rates, while controlling for GDP per capita and energy consumption, we can better isolate the effect of exchange rate stability on FDI.
+
+```{r}
+library(tidyverse)
+library(rstanarm)
+library(arm)
+
+ipe_data <- readRDS("~/Desktop/2)Causal Inference/In Pair/4. Graham_Tucker_IPE_v5.RDS")
+
+filtered_data <- ipe_data %>%
+  dplyr::select(year, country, exchange_rate_stable_TR, fdiflows_UNCTAD, gdppc_WDI) %>%
+  filter(year >= 1980 & year <= 2000) %>%
+  filter(!is.na(exchange_rate_stable_TR) & is.finite(exchange_rate_stable_TR))
+
+filtered_data$threshold <- ifelse(filtered_data$fdiflows_UNCTAD > 1871.1, 1, 0)
+
+fit <- stan_glm(threshold ~ exchange_rate_stable_TR,
+                data = filtered_data, family = binomial(link = "logit"),
+                refresh = 0)
+
+print(fit)
+
+x_value <- seq(min(filtered_data$exchange_rate_stable_TR), 
+               max(filtered_data$exchange_rate_stable_TR), by = 0.02)
+coefficients <- coef(fit)
+log_odds <- coefficients[1] + coefficients[2] * x_value
+predicted_probability <- invlogit(log_odds)
+
+predicted_data <- data.frame(exchange_rate = x_value, probability = predicted_probability)
+
+predicted_data %>%
+  ggplot(aes(x = exchange_rate, y = probability)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "x", y = "Probability of y = 1")
+```
+
+------------------------------------------------------------------------
+
+### [**Class 9a:**]{.underline} [**Design and sample size decisions**]{.underline} **- Chapter 15**
+
+**#1.**
+
+**#1-a.** 80% Power for 95% Significance Level
+
+\>\> To calculate sample size \\( n \\) for 80% power at a 95% significance level, we use the formula:
+
+\$\$ n = \\frac{{(\\sigma / \\text{{Effect Size}})\^2 \\cdot (Z\_{\\alpha/2} + Z\_{\\beta})\^2}}{{(\\text{{True Treatment Effect}})\^2}} \$\$
+
+$$ n = \frac{{(\sigma / \text{{Effect Size}})^2 \cdot (Z_{\alpha/2} + Z_{\beta})^2}}{{(\text{{True Treatment Effect}})^2}} $$
+
+```{r}
+# Given values
+sigma <- 20.1
+effect_size <- 5.0
+alpha_95 <- 0.05
+beta <- 0.2
+
+# Z-scores for 95% significance and 80% power
+z_alpha <- qnorm(1 - alpha_95 / 2)
+z_beta <- qnorm(1 - beta)
+
+# Calculate sample size
+n_95 <- ((sigma / effect_size) * (z_alpha + z_beta))^2
+n_95
+```
+
+**#1-b.** 80% Power for 90% Significance Level
+
+Similarly, for a 90% significance level:
+
+```{r}
+# Adjust alpha for 90% significance level
+alpha_90 <- 0.1
+z_alpha_90 <- qnorm(1 - alpha_90 / 2)
+
+# Calculate sample size
+n_90 <- ((sigma / effect_size) * (z_alpha_90 + z_beta))^2
+n_90
+```
+
+------------------------------------------------------------------------
+
+**#2.**
+
+**#2-a.** Estimating U.S. Population Support for Death Penalty to ±3% Margin of Error
+
+For a proportion estimate with a standard error of ±3% at 95% confidence:
+
+```{r}
+# Margin of error and critical Z-value
+margin_error <- 0.03
+z_value_95 <- qnorm(1 - 0.05 / 2)
+
+# Sample size calculation
+n_death_penalty <- (z_value_95 / margin_error)^2 * 0.5 * 0.5
+n_death_penalty
+```
+
+**#2-b. Estimating Latino Support for Death Penalty**
+
+With 14% of the U.S. population being Latino, we calculate the sample size for a ±3% margin within the Latino population.
+
+```{r}
+# Latino proportion in the population
+latino_prop <- 0.14
+
+# Adjusted sample size for Latino population proportion
+n_latino_death_penalty <- (z_value_95 / margin_error)^2 * latino_prop * (1 - latino_prop)
+n_latino_death_penalty
+```
+
+**#2-c. Estimating Latino Population Proportion to ±1% Margin**
+
+To estimate the proportion of Latinos within the U.S. population to a ±1% margin:
+
+```{r}
+# Margin of error for Latino population proportion
+margin_error_latino <- 0.01
+
+# Sample size calculation
+n_latino_proportion <- (z_value_95 / margin_error_latino)^2 * 0.5 * 0.5
+n_latino_proportion
+```
+
+------------------------------------------------------------------------
+
+**#3. Election Poll Sample Size Calculation**
+
+\>\> In an election scenario with candidates A, B, and C having estimated support levels of 45%, 35%, and 20%, we estimate the sample size needed to assess the difference between candidates A and B within ±5 percentage points.
+
+```{r}
+# Margin of error for difference
+margin_error_ab <- 0.05
+
+# Pooled proportion for two candidates A and B
+p_a <- 0.45
+p_b <- 0.35
+p_pooled <- (p_a + p_b) / 2
+
+# Sample size calculation
+n_election <- (z_value_95 / margin_error_ab)^2 * p_pooled * (1 - p_pooled)
+n_election
+```

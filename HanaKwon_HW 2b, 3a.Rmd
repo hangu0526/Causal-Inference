@@ -1,0 +1,271 @@
+---
+title: "HW2_240918"
+author: "Hana Kwon"
+date: "2024-09-18"
+output: pdf_document
+---
+
+# **Homework**
+
+### **by Hana Kwon**
+
+------------------------------------------------------------------------
+
+### [**Class 2b: Basics of math and probability**]{.underline}
+
+***#Q1.*** ***In R, create three vectors each of length 10, the first being the number 1 repeated 10 times, the second being the numbers 1 to 10, and the third being the sequence 1, 4, 9, . . . , 100. Compute the following weighted averages of these three vectors. In each case, your output should be a vector of length 10.
+(a) Weights 1=3; 1=3; 1=3
+(b) Weights 1; 2; 3***
+
+#**Answer:**
+
+```{r}
+# Step 1: Create the three vectors
+v1 <- rep(1, 10)            # First vector, repeated 1 ten times
+v2 <- 1:10                  # Second vector, numbers 1 to 10
+v3 <- (1:10)^2              # Third vector, squares of numbers 1 to 10 (1, 4, 9, ..., 100)
+
+# Step 2: Compute the weighted averages
+
+# Part (a): Equal weights (1/3, 1/3, 1/3)
+weights_a <- c(1/3, 1/3, 1/3)
+
+# Compute the weighted average for part (a)
+weighted_avg_a <- (weights_a[1] * v1) + (weights_a[2] * v2) + (weights_a[3] * v3)
+
+# Display result
+print("Weighted average for part (a):")
+print(weighted_avg_a)
+
+# Part (b): Unequal weights (1, 2, 3)
+weights_b <- c(1, 2, 3)
+
+# Compute the weighted average for part (b)
+weighted_avg_b <- (weights_b[1] * v1) + (weights_b[2] * v2) + (weights_b[3] * v3)
+
+# Display result
+print("Weighted average for part (b):")
+print(weighted_avg_b)
+```
+
+-   **Vectors:**
+    -   v1 is a vector of 10 elements, all set to 1
+    -   v2 is a sequence from 1 to 10.
+    -   v3 contains the squares of numbers 1 to 10.
+-   **Weights (a)**: The equal weights (1/3, 1/3, 1/3) are applied to each vector.
+-   **Weights (b)**: The unequal weights (1, 2, 3) are applied, assigning increasing importance to v1, v2, and v3 respectively.
+
+------------------------------------------------------------------------
+
+***#Q2.Simulate from the binomial distribution Express each of these lines of code in story form. For example, the first example could be the number of shots made by a basketball player who takes 20 shots and has a 30% chance of making each shot. Run each line of code in R on your computer to check that your story interpretation makes sense.***
+
+***(a) rbinom(1, 20, 0.3)***
+
+*\>\>* **Story:** Let's imagine a basketball player taking 20 shots, where each shot has a 30% chance of going in. This line of code simulates how many shots the player makes out of the 20 attempts.
+
+```{r}
+rbinom(1, 20, 0.3)
+```
+
+\>\> If the result is 6, this means the player made 6 successful shots out of 20.
+
+\>\>\>Therefore, **(a)** Simulates one basketball player’s success rate over 20 shots with a 30% probability of making each.
+
+***(b) rbinom(2, 20, c(0.3, 0.4))***
+
+*\>\>* **Story:** This could represent two basketball players. The first player takes 20 shots with a 30% chance of making each, and the second player also takes 20 shots but has a 40% chance of making each. The code simulates how many shots each player makes.
+
+```{r}
+rbinom(2, 20, c(0.3, 0.4))
+```
+
+\>\> If the result is 6, 7, this means the first player made 6 out of 20 shots, and the second player made 7 out of 20.
+
+\>\>\>Therefore, **(b)** Simulates two basketball players’ success rates, both taking 20 shots but with different success probabilities (30% and 40%).
+
+***(c) rbinom(2, c(30, 20), c(0.3, 0.4))***
+
+*\>\>* **Story:** This could represent two basketball players with different numbers of attempts. The first player takes 30 shots, with a 30% chance of making each, while the second player takes 20 shots, with a 40% chance of making each. The code simulates how many shots each player makes.
+
+```{r}
+rbinom(2, c(30, 20), c(0.3, 0.4))
+```
+
+\>\> If the result is 12, 6, this means the first player made 12 out of 30 shots, and the second player made 6 out of 20.
+
+\>\>\> Therefore, **(c)** Simulates two basketball players, but with one player taking 30 shots (30% chance of success) and the other taking 20 shots (40% chance of success).
+
+------------------------------------------------------------------------
+
+***#Q3.*** ***In pairs: Continuing example from your earlier in-pairs assignment:
+(a) Graph your data in three different ways. For each graph, write one or two sentences summarizing it.
+(b) In two or three sentences, discuss issues of validity and reliability with your data. In two or three more sentences, say how you could you gather additional data, at least in theory, to address these issues.***
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+ipe <- readRDS("/Users/hanakwon/Desktop/2)응용회귀:인과추론_Applied Reg&Causal Inference/In Pair")
+
+ipe %>% 
+  select(country, exchange_rate_stable_TR,fdiflows_UNCTAD, gdppc_WDI) %>% 
+  filter(between(year, 1980,2000) ) #%>% view()
+
+plot_dataset <- function(ipe, start_year = 1980, end_year = 2000){
+  filter_data <- ipe %>%
+    filter(between(year, start_year, end_year)) %>%
+    select(country, year, exchange_rate_stable_TR, fdiflows_UNCTAD)
+  
+  plot_rate <- ggplot(filter_data, aes(x = year, y = exchange_rate_stable_TR)) + 
+    geom_point() +
+    labs(title = "Exchange Rate Stability Over Time", 
+         x = "Year",
+         y = "ERS") +
+    theme_minimal()
+  
+  plot_flow <- ggplot(filter_data, aes(x = year, y = fdiflows_UNCTAD)) +
+    geom_point() +
+    labs(title = "FDI Flows Over Time",
+         x = "Year",
+         y = "FDI Flows") +
+    theme_minimal()
+  
+  return(list(exchange_rate_plot = plot_rate, fdi_plot = plot_flow))
+  
+}
+
+plots <- plot_dataset(ipe)
+
+print(plots$exchange_rate_plot)
+print(plots$fdi_plot)
+```
+
+------------------------------------------------------------------------
+
+### [**Class 3a: Statistical Inference**]{.underline}
+
+***#Q1. A sample of n people are selected at random from a large population and are asked a question, to which y reply Yes and n-y reply No. For each example below, give a 95% interval for the proportion in the population who would answer Yes if asked.***
+
+(a) n = 1500, y = 750
+
+(b) n = 1500, y = 900
+
+(c) n = 10, y = 6
+
+```{r}
+# Function to calculate the 95% confidence interval for a proportion
+calc_ci <- function(n, y) {
+  p_hat <- y / n  # Estimate the proportion
+  se <- sqrt(p_hat * (1 - p_hat) / n)  # Calculate the standard error
+  lower_bound <- p_hat - 1.96 * se  # Lower bound of the confidence interval
+  upper_bound <- p_hat + 1.96 * se  # Upper bound of the confidence interval
+  
+  return(c(lower_bound, upper_bound))
+}
+
+# (a): n = 1500, y = 750
+n_a <- 1500
+y_a <- 750
+ci_a <- calc_ci(n_a, y_a)
+cat("95% confidence interval for (a): [", round(ci_a[1], 4), ",", round(ci_a[2], 4), "]\n")
+
+# (b): n = 1500, y = 900
+n_b <- 1500
+y_b <- 900
+ci_b <- calc_ci(n_b, y_b)
+cat("95% confidence interval for (b): [", round(ci_b[1], 4), ",", round(ci_b[2], 4), "]\n")
+
+# (c): n = 10, y = 6
+n_c <- 10
+y_c <- 6
+ci_c <- calc_ci(n_c, y_c)
+cat("95% confidence interval for (c): [", round(ci_c[1], 4), ",", round(ci_c[2], 4), "]\n")
+
+```
+
+------------------------------------------------------------------------
+
+***#Q2. Out of a random sample of 50 Americans, zero report having ever held political office. From this information, give a 95% confidence interval for the proportion of Americans who have ever held political office.***
+
+```{r}
+# Plus-four method for confidence interval
+n <- 50
+y <- 0
+
+# Adjusted values
+n_adj <- n + 4
+y_adj <- y + 2
+
+# Estimate proportion
+p_hat <- y_adj / n_adj
+
+# Standard error
+se <- sqrt(p_hat * (1 - p_hat) / n_adj)
+
+# 95% confidence interval
+lower_bound <- p_hat - 1.96 * se
+upper_bound <- p_hat + 1.96 * se
+
+cat("95% confidence interval: [", round(lower_bound, 4), ",", round(upper_bound, 4), "]\n")
+```
+
+------------------------------------------------------------------------
+
+***#Q3. Compare two options for a national opinion survey: ([a) a simple random sample of 1000 Americans,]{.underline} or [(b) a survey that oversamples Latinos, with 300 randomly sampled Latinos and 700 others randomly sampled from the non-Latino population.]{.underline} One of these options will give more accurate comparisons between Latinos and others; the other will give more accurate estimates for the total population average.***
+
+***(a) Which option gives more accurate comparisons and which option gives more accurate population estimates?***
+
+***(b) Explain your answer above by computing standard errors for the Latino/other comparison and the national average under each design. Assume that the national population is 15% Latino, that the items of interest are yes/no questions with approximately equal proportions of each response, and (unrealistically) that the surveys have no problems with nonresponse.***
+
+```{r}
+# Proportion of interest (assumed to be 0.5 for yes/no question)
+p <- 0.5
+
+# Option (a): Simple random sample
+n_a_latino <- 150  # 15% of 1000
+n_a_non_latino <- 850  # 85% of 1000
+n_a_total <- 1000
+
+# Option (b): Oversample
+n_b_latino <- 300
+n_b_non_latino <- 700
+n_b_total <- 1000
+
+# Standard errors for Option (a)
+se_a_latino <- sqrt(p * (1 - p) / n_a_latino)
+se_a_non_latino <- sqrt(p * (1 - p) / n_a_non_latino)
+se_a_total <- sqrt(p * (1 - p) / n_a_total)
+
+# Standard errors for Option (b)
+se_b_latino <- sqrt(p * (1 - p) / n_b_latino)
+se_b_non_latino <- sqrt(p * (1 - p) / n_b_non_latino)
+se_b_total <- sqrt(p * (1 - p) / n_b_total)
+
+# Print results
+cat("Option (a) - Simple random sample:\n")
+cat("SE Latino:", round(se_a_latino, 4), "\n")
+cat("SE Non-Latino:", round(se_a_non_latino, 4), "\n")
+cat("SE National:", round(se_a_total, 4), "\n\n")
+
+cat("Option (b) - Oversample:\n")
+cat("SE Latino:", round(se_b_latino, 4), "\n")
+cat("SE Non-Latino:", round(se_b_non_latino, 4), "\n")
+cat("SE National:", round(se_b_total, 4), "\n")
+```
+
+**\>\> Answer:**\
+
+**For Latino vs. Non-Latino Comparison**:
+
+In **Option (a)**, the sample size for Latinos is smaller (150), so the standard error for Latinos will be larger compared to Option (b).
+
+In **Option (b)**, the Latino sample size is larger (300), so the standard error for Latinos is smaller, making comparisons between Latinos and non-Latinos more accurate.
+
+**For National Estimate**:
+
+In **Option (a)**, the simple random sample is representative of the population, so the standard error for the national estimate is smaller.
+
+In **Option (b)**, the oversampling leads to an imbalance, so the national estimate has a slightly higher standard error.
+
+\>\> Therefore, **Option (a)** gives more accurate estimates for the total population, while **Option (b)** gives more accurate comparisons between Latinos and others due to the larger sample size for Latinos.

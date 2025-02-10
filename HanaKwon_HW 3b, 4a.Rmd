@@ -1,0 +1,294 @@
+---
+title: "HW2_240925"
+author: "Hana Kwon"
+date: "2024-09-25"
+output: pdf_document
+---
+
+#### **[POLS4720] 'Applied Regression & Causal Inference'**
+
+# **Homework**
+
+### **by Hana Kwon**
+
+------------------------------------------------------------------------
+
+### [**Class 3b: Simulation**]{.underline}
+
+**#1. Basketball Simulation**
+
+**#1-a.**
+
+```{r}
+set.seed(123) 
+shots_made <- rbinom(1, size = 10, prob = 0.40)
+shots_made
+```
+
+**#1-b.**
+
+```{r}
+set.seed(123) 
+
+# Probabilities from 10% to 100%
+probabilities <- seq(0.1, 1, length.out = 10) 
+shots_made_varying <- rbinom(10, size = 1, prob = probabilities)
+
+total_shots_made <- sum(shots_made_varying)
+total_shots_made
+```
+
+**#2. Experimental Course Simulation**
+
+**#2-a.**
+
+```{r}
+set.seed(123)
+
+# Generate scores for the control group (usual class)
+control_group <- rnorm(50, mean = 60, sd = 10)
+
+# Generate scores for the treatment group (experimental course)
+treatment_group <- rnorm(50, mean = 70, sd = 15)
+
+# Estimate treatment effect and standard error
+treatment_effect <- mean(treatment_group) - mean(control_group)
+standard_error <- sqrt(var(treatment_group)/50 + var(control_group)/50)
+
+cat("Estimated Treatment Effect:", treatment_effect, "\n")
+cat("Standard Error:", standard_error, "\n")
+```
+
+**#3. Estimate the Average Treatment Effect**
+
+```{r}
+# Response rates for treatment and control groups
+response_treatment <- 0.50
+response_control <- 0.40
+
+# Calculate the average treatment effect
+ate <- response_treatment - response_control
+
+# Standard error for ATE
+n <- 1000 / 2 # 500 people in each group
+se_ate <- sqrt((response_treatment * (1 - response_treatment) / n) + 
+               (response_control * (1 - response_control) / n))
+
+cat("ATE:", ate, "\n")
+cat("Standard Error:", se_ate, "\n")
+```
+
+**#4. Estimate the Sample Size for Gender Gap**
+
+```{r}
+# Standard error formula for proportion differences
+se_required <- 0.05 # Desired SE of less than 5%
+
+# The estimated proportion (p) and its complement (1-p) for gender support differences
+p <- 0.5
+
+# Sample size formula: n = (p * (1 - p)) / (se_required^2)
+sample_size <- (p * (1 - p)) / (se_required^2)
+sample_size <- ceiling(sample_size)
+
+cat("Required Sample Size:", sample_size, "\n")
+```
+
+**#5. Probability of Better Shooter Making More Shots**
+
+```{r}
+set.seed(123)
+
+# Simulate 20 shots for both shooters
+shooter1 <- rbinom(1, 20, 0.30)   # 30% shooter
+shooter2 <- rbinom(1, 20, 0.40)   # 40% shooter
+
+# Compare shooting percentages
+prob_better <- mean(shooter2 > shooter1)
+cat("Probability Better Shooter Makes More Shots:", prob_better, "\n")
+```
+
+**#6.** **Sample Size for Distinguishing Between 30% and 40% Shooters**
+
+```{r}
+# Define the parameters
+p1 <- 0.30  # Proportion for the first shooter (30% shooter)
+p2 <- 0.40  # Proportion for the second shooter (40% shooter)
+alpha <- 0.05  # Significance level (5%)
+power <- 0.80  # Desired power (80%)
+
+# Z-scores for alpha and beta
+z_alpha <- qnorm(1 - alpha/2)  # Z-value for two-tailed test at alpha level
+z_beta <- qnorm(power)  # Z-value corresponding to the desired power
+
+# Calculate the required sample size for each group
+n_required <- ((z_alpha + z_beta)^2 * (p1*(1 - p1) + p2*(1 - p2))) / (p1 - p2)^2
+
+# Round up to the nearest whole number
+n_required <- ceiling(n_required)
+
+cat("Required Sample Size per Group to Distinguish 30% and 40% Shooters:", n_required, "\n")
+```
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+### [**Class 4a: Background on regression modeling**]{.underline}
+
+**#1-a. Simulate Data and Fit a Linear Regression**
+
+• Intercept: 1
+
+• Slope: 2
+
+• Residual standard deviation: 3
+
+• Predictors sampled randomly from the range (0, 4)
+
+```{r}
+# Set the seed for reproducibility
+set.seed(123)
+
+# Number of data points
+n <- 100
+
+# Simulate predictor values (x) randomly from the range (0, 4)
+x <- runif(n, min = 0, max = 4)
+
+# Simulate response values (y) from the linear model with residual standard deviation of 3
+true_intercept <- 1
+true_slope <- 2
+residual_sd <- 3
+
+# Generate the response variable y
+y <- true_intercept + true_slope * x + rnorm(n, mean = 0, sd = residual_sd)
+
+# Fit a linear model
+model <- lm(y ~ x)
+
+# Display the summary of the model
+summary(model)
+
+# Extract the estimated intercept and slope with their standard errors
+intercept_estimate <- coef(summary(model))["(Intercept)", "Estimate"]
+slope_estimate <- coef(summary(model))["x", "Estimate"]
+
+intercept_se <- coef(summary(model))["(Intercept)", "Std. Error"]
+slope_se <- coef(summary(model))["x", "Std. Error"]
+
+# Check if the true values fall within 1 standard error of the estimates
+intercept_in_range <- (true_intercept >= intercept_estimate - intercept_se) && (true_intercept <= intercept_estimate + intercept_se)
+slope_in_range <- (true_slope >= slope_estimate - slope_se) && (true_slope <= slope_estimate + slope_se)
+
+# Print results
+cat("Is the true intercept within 1 SE of the estimated intercept? ", intercept_in_range, "\n")
+cat("Is the true slope within 1 SE of the estimated slope? ", slope_in_range, "\n")
+```
+
+**#1-b. Plot the Simulated Data and the Fitted Regression Line**
+
+![](images/clipboard-898421617.png)
+
+```{r}
+# Plot the data points
+plot(x, y, main = "Data and Fitted Regression Line", xlab = "x", ylab = "y", pch = 16)
+
+# Add the fitted regression line
+abline(model, col = "blue", lwd = 2)
+
+# Add the formula for the fitted line to the plot
+intercept_label <- round(intercept_estimate, 2)
+slope_label <- round(slope_estimate, 2)
+formula_text <- paste("y =", intercept_label, "+", slope_label, "* x")
+text(2, max(y), formula_text, pos = 4, col = "blue")
+```
+
+------------------------------------------------------------------------
+
+**#2-a**
+
+![](images/IMG_8CB619523DB5-1.jpeg){width="422"}
+
+**#2-b**
+
+![](images/IMG_1C357A360B2F-1.jpeg){width="424"}
+
+------------------------------------------------------------------------
+
+**#3-a. Compute the Probability of Making Exactly 3 Shots**
+
+```{r}
+# Compute the probability of making exactly 3 shots
+probability_3_shots <- dbinom(3, size = 10, prob = 0.4)
+probability_3_shots
+```
+
+-   3 is the number of successes (making exactly 3 shots).
+
+-   size = 10 represents the total number of trials (shots).
+
+-   prob = 0.4 is the probability of success (making a shot).
+
+**#3-b. Simulate the Shots and Check the Probability**
+
+```{r}
+# Function to simulate 10 shots
+simulate_shots <- function() {
+  # Simulate 10 shots with a 40% chance of making each shot
+  shots <- rbinom(1, size = 10, prob = 0.4)
+  return(shots)
+}
+
+# Simulate the 10 shots 10,000 times
+set.seed(123)  # Set a seed for reproducibility
+n_simulations <- 10000
+results <- replicate(n_simulations, simulate_shots())
+
+# Calculate the proportion of simulations where exactly 3 shots were made
+simulated_prob_3_shots <- mean(results == 3)
+simulated_prob_3_shots
+
+# Compare the simulated probability with the exact probability
+cat("Exact probability of making 3 shots: ", probability_3_shots, "\n")
+cat("Simulated probability of making 3 shots: ", simulated_prob_3_shots, "\n")
+```
+
+**Explanation:**
+
+1.  
+
+    -   simulate_shots() **Function**: This function simulates 10 basketball shots using rbinom(). The function returns the number of shots made in each trial.
+    -   rbinom(1, size = 10, prob = 0.4) simulates a single binomial experiment where 10 shots are attempted with a 40% chance of success.
+
+2.  replicate(): We use this function to repeat the simulation 10,000 times. This will give us a distribution of the number of shots made across all simulations.
+
+3.  **Proportion Calculation**: The line mean(results == 3) computes the proportion of simulations where exactly 3 shots were made, and we compare this to the exact binomial probability computed in part 3-a.
+
+**Output:**
+
+-   The exact probability of making exactly 3 shots will be computed using dbinom().
+
+-   The simulated probability, based on the 10,000 simulations, will also be printed for comparison.
+
+------------------------------------------------------------------------
+
+**#4. In pairs**
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(rstanarm)
+
+ipe_data <- readRDS("~/Desktop/2_POLS4720_Applied Reg Causal Inference/In Pair/4. Graham_Tucker_IPE_v5.RDS")
+filtered_data <- ipe_data %>% select(country, exchange_rate_stable_TR, fdiflows_UNCTAD, gdppc_WDI) %>% filter(between(year, 1980, 2000))
+
+model_fit <- stan_glm(exchange_rate_stable_TR ~ fdiflows_UNCTAD, data = filtered_data) 
+
+print(model_fit, digits = 2)
+plot(filtered_data$exchange_rate_stable_TR, filtered_data$fdiflows_UNCTAD, main = "Correlation Between FDI and Exchange Rate Stability", xlab = "Exchange Rate Stability", ylab = "FDI Flows")
+intercept <- coef(model_fit)[1] 
+slope <- coef(model_fit)[2]
+abline(intercept, slope)
+```

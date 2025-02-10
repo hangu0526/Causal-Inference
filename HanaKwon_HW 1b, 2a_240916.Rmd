@@ -1,0 +1,144 @@
+---
+title: "HW1_240911"
+author: "Hana Kwon"
+date: "2024-09-11"
+output: pdf_document
+---
+
+# **Homework**
+
+### **by Hana Kwon**
+
+------------------------------------------------------------------------
+
+### [**Class 1b: Overview of Applied Regression**]{.underline}
+
+**#1 (a)** *What are the three challenges of statistical inference?*
+
+1.  **Generalizing from sample to population:** This is [the challenge of making inferences]{.underline} [about the entire population based on a sample]{.underline}. It’s relevant in survey sampling but applies to almost every scenario in statistical inference.
+
+2.  **Generalizing from treatment to control group:** This is [central to causal inference]{.underline}. We often want to infer the effect of a treatment or intervention, and this problem is [part of the interpretation of most regressions.]{.underline}
+
+3.  **Generalizing from observed measurements to underlying constructs of interest:** Often, the data we collect aren’t direct measurements of the concepts we actually want to study, so there’s [a gap between the data and the true constructs of interest.]{.underline}
+
+=\> All these challenges can be framed as [problems of prediction]{.underline}: predicting outcomes for new people, different treatments, or the underlying constructs we wish we could measure directly.
+
+**#1 (b)** *What is the URL of the website with data and examples from the textbook?*
+
+=\> The data and code from the textbook are available on GitHub. We can access everything, including examples and figures, at:[www.stat.columbia.edu/\~gelman/regression](http://www.stat.columbia.edu/~gelman/regression)
+
+------------------------------------------------------------------------
+
+**#2** *Give examples of applied statistics problems of interest to you with challenges in:*
+
+*(I will think of examples related to Business and Management Focus which is my research interest)*
+
+**#2 (a)** **Generalizing from sample to population:**
+
+=\> In the context of **employee engagement surveys**, organizations often use responses from a subset of employees to infer overall engagement levels across the entire company. The challenge here is ensuring that the sample is representative of the broader employee population. For example, if certain departments or job levels are over- or under-represented, the results might not accurately reflect the true engagement across the company. This can skew management decisions based on incomplete data.
+
+**#2 (b) Generalizing from treatment to control group:**
+
+=\> A key issue I’m interested in involves **evaluating the effectiveness of leadership training programs**. When running experiments or quasi-experiments to assess whether these programs improve leadership skills and performance, there are always challenges in ensuring that any differences between the treatment and control groups are due to the intervention itself and not due to confounding factors like prior leadership experience or inherent motivation. Additionally, how the control group is managed (whether they receive no intervention or an alternative form of training) can significantly affect the outcome and complicate causal inferences.
+
+**#2 (c) Generalizing from observed measurements to the underlying constructs of interest:**
+
+=\> In **measuring organizational culture**, we often use proxies like employee surveys or turnover rates to estimate something much more abstract. The challenge is that these metrics only provide an indirect view of the broader concept of organizational culture. For example, survey responses may not fully capture the informal norms and shared beliefs that constitute culture, leading to potential gaps between what’s measured and the true construct of interest. This poses challenges when linking culture to outcomes like innovation or performance.
+
+------------------------------------------------------------------------
+
+**#3** (In pairs) *Consider **a topic of interest** to you for which you can download or collect some data. You will use this example **throughout the course** to work though the concepts and methods covered in the book, **so the example should be worth your time and should have some complexity.** For this first exercise, **discuss your applied goals in studying this example and how the data can address these goals.***
+
+*(Since I found my partner late, for this assignment I will just write on my own but I will change the topic and data after discussing with my partner! )*
+
+-   **Topic:** For this course, I’m interested in studying [firm performance in response to different corporate governance structures]{.underline}, which aligns with my broader research focus on strategy and organizational theory. Specifically, I’m curious about [how variations in governance]{.underline}—such as board composition, CEO duality, and ownership concentration—[affect strategic decision-making and long-term profitability]{.underline}.
+
+-   **Data:** To explore this, I plan to use the [FRED (Federal Reserve Economic Data)]{.underline} dataset, which provides rich financial and macroeconomic data, combined with firm-level data on corporate governance.
+
+-   **Applied Goals:** The goal of my research is [to understand the link between governance practices and firm performance across different industries and economic cycles.]{.underline} My hypothesis is that governance structures play a critical role in firms’ ability to adapt to external shocks and changes in market conditions. By analyzing this data, I hope to assess which governance models are most conducive to sustained growth and resilience.
+
+-   **How Data Can Address These Goals:**
+
+    **Firm-Level Financial Data**: Using FRED’s economic data alongside firm financials, I can measure [performance indicators such as return on assets (ROA), market valuation, and revenue growth.]{.underline} This will allow me to assess how governance factors correlate with financial success.
+
+    **Governance Indicators**: I will [combine this with governance-specific data (board composition, CEO roles, etc.)]{.underline} to [test whether certain configurations lead to better strategic outcomes]{.underline}.
+
+    **Cross-Industry Comparisons**: The richness of the FRED dataset allows for [industry-specific analyses]{.underline}, enabling me to [compare governance impacts across sectors.]{.underline} This cross-sectional approach can reveal [whether governance effects are industry-specific or more universal.]{.underline}
+
+------------------------------------------------------------------------
+
+### [**Class 2a:**]{.underline}
+
+**#1 (a)**
+
+```{r}
+
+#1-(a)
+seq_20 <- seq(0, 20, 0.2)
+print(seq_20)
+```
+
+**#1 (b)**
+
+```{r}
+
+#1-(b)
+random_num <- runif(1, 0, 10)
+print(random_num)
+```
+
+**#1 (c)**
+
+```{r}
+
+#1-(c)
+random_nums <- runif(10, 0, 10)
+print(random_nums)
+```
+
+------------------------------------------------------------------------
+
+**#2 (a)**
+
+```{r}
+x <- c("Brad Pitt", "Selena Gomez", "Taylor Swift", "Tom Cruise")
+print(x)
+```
+
+**#2 (b)**
+
+```{r}
+
+x <- c("Brad Pitt", "Selena Gomez", "Taylor Swift", "Tom Cruise")
+p <- c(0.25, 0.25, 0.25, 0.25)
+sample(x, 1, prob=p)
+```
+
+**#2 (c)**
+
+```{r}
+x_values <- seq(0, 10, 0.5)
+y_values <- sqrt(x_values)
+plot(x_values, y_values, main = "Scatterplot of y = sqrt(x)", xlab = "x", ylab = "y = sqrt(x)", pch = 19)
+```
+
+**#2 (d)**
+
+```{r}
+x_values <- seq(0, 10, 0.1)
+y_values <- sqrt(x_values)
+plot(x_values, y_values, type = "l", main = "Plot of y = sqrt(x)", xlab = "x", ylab = "y = sqrt(x)")
+```
+
+**#2 (e)**
+
+```{r}
+x_values <- seq(0, 20, 0.1)
+y1_values <- sqrt(x_values)
+y2_values <- 2.5 + sqrt(x_values)
+
+plot(x_values, y1_values, type = "l", col = "blue", main = "Two lines: y = sqrt(x) and y = 2.5 + sqrt(x)", xlab = "x", ylab = "y")
+lines(x_values, y2_values, col = "red")
+```
+
+------------------------------------------------------------------------

@@ -1,0 +1,160 @@
+---
+title: "HW_241106"
+author: "Hana Kwon"
+date: "2024-11-06"
+output: 
+  pdf_document:
+    latex_engine: lualatex
+---
+
+#### **[POLS4720] 'Applied Regression & Causal Inference'**
+
+# **Homework**
+
+### **by Hana Kwon**
+
+------------------------------------------------------------------------
+
+### [**Class 9b: Poststratification and missing-data imputation**]{.underline} **- Chapter 17**
+
+**1.**
+
+**1-a.**
+
+```{r}
+# Defining the data
+effects <- c(2.5, -0.9, 1.9)  # effects for 6th, 7th, and 8th grades
+se <- c(1.1, 1.5, 1.2)        # standard errors for each grade
+weights <- c(0.35, 0.35, 0.30) # population weights
+
+# Population average effect
+average_effect <- sum(weights * effects)
+
+# Standard error calculation
+var <- sum((weights * se)^2)
+se_pop <- sqrt(var)
+
+average_effect
+se_pop
+
+##Answer: The estimated population average effect is r average_effect (1.13) with a standard error of r se_pop(0.744)
+```
+
+**1-b.**
+
+```{r}
+# Given values for 6th and 7th grades and total pop effect
+effects_known <- c(3.5, -1.9) # Known effects
+se_known <- c(2.1, 2.5)       # Known SEs
+weights_known <- c(0.35, 0.35) # Known weights
+
+# Solving for X and Y using algebra (establishing equations)
+average_target <- 2.0  # Given average effect for pop
+se_target <- 3.5       # Given SE for pop
+
+# Calculating required effect for 8th grade
+effect_8 <- (average_target - sum(weights_known * effects_known)) / 0.3
+
+# Solving for required SE for 8th grade
+var_target <- se_target^2
+var_8 <- (var_target - sum((weights_known * se_known)^2)) / 0.3^2
+se_8 <- sqrt(var_8)
+
+effect_8
+se_8
+
+##Answer: The values of 𝑋and Y for the eighth grade are r effect_8 (4.8) and r se_8(11.03), respectively.
+```
+
+**2.**
+
+**2-a.\
+**
+
+```{r}
+# Complete-case analysis includes rows where y and z are observed for regression of y on z
+complete_case_y_z <- c(8, 9, 10)  # Rows with no missing y and z values
+
+# For regression of y on x and z, all x, y, z must be present
+complete_case_y_x_z <- integer(0)  # No row has complete x, y, z
+
+complete_case_y_z
+complete_case_y_x_z
+
+###Answer: 
+##For a regression of y on z, rows 8, 9, and 10 are included in the complete-case analysis.
+##For y on x and z, no rows are included in the complete-case analysis, as no rows have complete values for x, y, and z simultaneously.
+```
+
+**2-b.**
+
+```{r}
+# Available-case analysis for y on z includes rows with any non-missing y and z
+available_case_y_z <- c(2, 8, 9, 10)
+
+# Available-case analysis for y on x and z includes rows with any non-missing x, y, z
+available_case_y_x_z <- c(6, 7, 8, 9, 10)  # Rows with available y and z (not necessarily x)
+
+available_case_y_z
+available_case_y_x_z
+
+##Answer:
+##For a regression of y on z, the available-case analysis includes rows 2, 8, 9, and 10.
+##For a regression of y on x and z, the available-case analysis includes rows 6, 7, 8, 9, and 10.
+```
+
+------------------------------------------------------------------------
+
+**3.**
+
+5 reasons why we might expect the estimated effect in future studies to be lower than in initial studies?
+
+1.  **Regression to the Mean**: Initial studies may capture an unusually strong effect due to chance, which diminishes in later studies.
+
+2.  **Selection Bias**: Early studies might focus on contexts where the treatment effect is likely to be strongest, while later studies could have a broader, less favorable sample.
+
+3.  **Publication Bias**: Early, significant findings are more likely to be published, while null or less significant results in subsequent studies are underreported.
+
+4.  **Methodological Improvements**: Initial studies might not control for all confounding variables, leading to overestimation, while later studies improve upon these methods.
+
+5.  **Natural Decline in Novelty Effects**: A new treatment or intervention might initially have strong effects due to novelty or enthusiasm, which decline over time as it becomes routine.
+
+------------------------------------------------------------------------
+
+**4. In Pairs**
+
+```{r}
+library(rstanarm)
+set.seed(123)
+
+n <- 10
+
+ERS <- runif(n, 50, 100)
+GDP <- runif(n, 1e6, 1e7)
+Infla <- runif(n, 0, 12)
+policy_treat <- sample(rep(c(0, 1), c(n/2, n/2)), n)
+
+coef_ERS <- 0.3
+coef_treat <- 4
+coef_GDP <- 1e-10
+coef_Infla <- -0.3
+
+FDI <- coef_ERS * ERS + coef_treat * policy_treat + 
+  coef_GDP * GDP + Infla * coef_Infla
+
+fake <- data.frame(ERS, GDP, Infla, policy_treat, FDI)
+
+fake$standard_ERS <- scale(ERS)
+fake$standard_FDI <- scale(FDI)
+
+groupby_treat <- split(fake$standard_FDI, fake$policy_treat)
+
+sd_groups <- apply(as.data.frame(groupby_treat),
+                   2, sd)
+
+print(sd_groups)
+
+fit <- stan_glm(standard_FDI ~ standard_ERS + policy_treat, data = fake,
+                refresh = 0)
+print(fit)
+```

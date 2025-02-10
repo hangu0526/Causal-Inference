@@ -1,0 +1,318 @@
+---
+title: "section_sept_27"
+author: "Elden Griggs"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+```{r}
+rm(list = ls())
+library(glue)
+library(tidyverse)
+## me building the data
+# read_csv("hogwarts_admits.csv") %>% #name and address only
+#   dplyr::select(name,address ) %>%
+#   mutate(father_wizard = rbinom(n(), 1, .5)) %>%
+#   mutate(mother_wizard = rbinom(n(), 1, if_else(father_wizard == 1, .8, .2))) %>%
+#   mutate(family_gringotts_account_size= 3*mother_wizard + 3*father_wizard + 1.5*rnorm(n()) ) %>%
+#   mutate(family_gringotts_account_size = if_else((mother_wizard ==0 & father_wizard == 0 )|family_gringotts_account_size <0, 0,family_gringotts_account_size)*10000)  %>%
+#   mutate(quiditch_capabilities = round(rnorm(n(), 3 + 2*family_gringotts_account_size/10000 + mother_wizard + father_wizard , 5 ))) %>%
+#   mutate(quiditch_capabilities = case_when(quiditch_capabilities < 0 ~ 0,
+#                                           quiditch_capabilities > 30 ~ 30,
+#                                           .default = quiditch_capabilities)) %>%
+#   mutate(parseltongue = rbinom(n(), 1, .05)) %>%
+#   write_csv("hogwarts_admits.csv")
+```
+
+### Hogwarts Admininstrative Unit and Coding
+
+### data checking
+```{r}
+hogwarts_admits <- read_csv("hogwarts_admits.csv") 
+## show me a character vector 
+
+## provide me with a list of the names and addresses also add the data into this list and add another list with a character note inside of it
+
+hogwarts_list <- list(hogwarts_admits$name, hogwarts_admits$address, hogwarts_admits, list(note))
+note <- "this is a hogwarts list"
+## what is the difference between a matrix, data.frame/tibble and a list?
+
+```
+
+
+### letter writing
+```{r}
+letter_base_text<- "
+HOGWARTS SCHOOL of WITCHCRAFT and WIZARDRY
+
+To {name}
+{address}
+
+Headmaster: Albus Dumbledore
+(Order of Merlin, First Class, Grand Sorc., Chf. Warlock,
+Supreme Mugwump, International Confed. of Wizards)
+
+
+Dear {name},
+We are pleased to inform you that you have been accepted at Hogwarts School of Witchcraft and Wizardry. Please find enclosed a list of all necessary books and equipment.
+Term begins on 1 September. We await your owl by no later than 31 July.
+Yours sincerely,
+Minerva McGonagall
+Deputy Headmistress"
+
+
+
+```
+
+
+### challenge make an admission letter generator that takes a name, address and then prints the letter. Use a random admit to test it
+```{r}
+add_function <- function(first_number =2 , second_number = 3) {
+  first_number + second_number
+}
+add_function()
+add_function(first_number=4)
+#`+`(2+3) even things you take for granted as functions are functions
+## hint look at paste0 and paste
+```
+
+### answer
+```{r}
+hogwarts_admits <- hogwarts_admits  %>% 
+  separate(col = "name", into = c("last_name", "first_name"), sep = ",")
+
+
+
+
+
+class_letter_generator<- function(name, address) {
+  first_part <- "HOGWARTS SCHOOL of WITCHCRAFT and WIZARDRY
+
+To"
+ second_part <-  "Headmaster: Albus Dumbledore
+(Order of Merlin, First Class, Grand Sorc., Chf. Warlock,
+Supreme Mugwump, International Confed. of Wizards)
+
+
+Dear"
+last_part <-  "We are pleased to inform you that you have been accepted at Hogwarts School of Witchcraft and Wizardry. Please find enclosed a list of all necessary books and equipment.
+Term begins on 1 September. We await your owl by no later than 31 July.
+Yours sincerely,
+Minerva McGonagall
+Deputy Headmistress"
+  paste(first_part, name, address,second_part, name, last_part)
+}
+
+class_letter_generator("tom", "columbia")
+
+hogwarts_letter_generator <- function(first_name, last_name, address) {
+   letter <-glue("
+HOGWARTS SCHOOL of WITCHCRAFT and WIZARDRY
+
+To {first_name} {last_name}
+{address}
+
+Headmaster: Albus Dumbledore
+(Order of Merlin, First Class, Grand Sorc., Chf. Warlock,
+Supreme Mugwump, International Confed. of Wizards)
+
+
+Dear{first_name} {last_name},
+We are pleased to inform you that you have been accepted at Hogwarts School of Witchcraft and Wizardry. Please find enclosed a list of all necessary books and equipment.
+Term begins on 1 September. We await your owl by no later than 31 July.
+Yours sincerely,
+Minerva McGonagall
+Deputy Headmistress")
+   return(letter)
+}
+
+test_subject <- hogwarts_admits %>% 
+  slice_sample(n = 1)
+
+hogwarts_letter_generator(test_subject$first_name, test_subject$last_name, test_subject$address)
+
+```
+### Challenge write all the letters! Please write all the letters to Hogwarts admits and save them to txt files on your computer in a folder
+```{r}
+test <- c(1:24)
+for (i in test) {
+  print(letter)
+}
+for (i in 1:24){
+  print(letters[l])
+}
+# hint check writelines also
+```
+
+### answer
+```{r}
+for (student_number in 1:23){
+  letter_for_student <- hogwarts_letter_generator(first_name = hogwarts_admits[[student_number,2]],
+                                                    last_name = hogwarts_admits[[student_number,1]], 
+                                                    address = hogwarts_admits[[student_number,3]])
+  hogwarts_student_letters_directory <- "hogwarts_student_letters_directory" 
+  letter_path <- glue("{hogwarts_student_letters_directory}/hogwarts_letter_student{student_number}.txt")
+  if (dir.exists(hogwarts_student_letters_directory)) {
+    write_lines(letter_for_student, letter_path)
+  } else {
+    dir.create("hogwarts_student_letters_directory")
+    write_lines(letter_for_student, letter_path)
+  }
+  
+}
+```
+
+
+### whiling away and sending the letters
+
+```{r}
+n <- 0
+while (n< 10) {
+  n <- n + 1
+  print(n)
+}
+# hint check file.remove() and list.files()
+```
+
+### challenge use the while loop and delete all the letters in your folder
+
+```{r}
+while (length(list.files("hogwarts_student_letters_directory"))>0) {
+  file_sent_by_deletion <- sample(list.files("hogwarts_student_letters_directory"),1)
+  letter_path <- glue("{hogwarts_student_letters_directory}/{file_sent_by_deletion}")
+  file.remove(letter_path)
+}
+## note the below with recursive does the above
+if (length(list.files("hogwarts_student_letters_directory"))==0){
+  unlink("hogwarts_student_letters_directory", recursive=TRUE)
+}
+```
+
+### setting up your grades
+```{r}
+# library(MASS)
+# 
+# set.seed(123)
+# random_matrix <- matrix(runif(49, min = -10, max = 10), nrow = 7)
+# 
+# cov_matrix <- t(random_matrix) %*% random_matrix
+# 
+# mu_vector <- runif(7, min = 0, max = 100)
+# 
+# grades <- as_tibble(abs(round(mvrnorm(23, mu = mu_vector, Sigma = cov_matrix))))
+# names(grades) <- c("transfiguration_final_grade",
+#          "charms_final_grade",
+#          "potions_final_grade",
+#          "history_of_magic_final_grade",
+#          "defence_against_the_dark_arts_final_grade",
+#          "astronomy_final_grade",
+#          "herbology_final_grade")
+# hogwarts_admits %>%
+#   dplyr::select(name) %>%
+#   bind_cols(grades) %>%
+#   mutate(across(contains("final_grade"), ~ if_else(. > 100, 100, .))) %>% 
+#   mutate(house = sample(c("Gryffindor", "Hufflepuff", "Ravenclaw", "Slytherin"), n(), replace = TRUE)) %>% 
+#   write_csv("hogwarts_final_grades.csv")
+# 
+
+```
+
+### get me a regression summary for transfiguration final grade on each other class (transfiguration final grade~ some grade). Additionally get me a plot of each relationship with line and scatter points. Color the points by house. Output each summary and graph pair into a list. This list should be length 6. If you want a challenge, get me all combinations of variables. This should be length 42. 
+```{r}
+hogwarts_final_grades <- read_csv("hogwarts_final_grades.csv")
+
+```
+
+### answer
+```{r}
+
+
+get_plot <- function(x_var, y_var) {
+  grade_plot <- ggplot(data = hogwarts_final_grades, aes_string(x = x_var, y = y_var, color = "house")) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE, color = "black") +
+    scale_colour_manual(values = c("#ae0001","#f0c75e", "#222f5b", "#2a623d")) +
+    theme_minimal()
+}
+library(broom)
+get_lm <- function(x_var, y_var) {
+  lm_data <- lm(as.formula(glue("{y_var}~{x_var}")), data = hogwarts_final_grades) %>% 
+    tidy()
+}
+get_list <- function(x_var, y_var) {
+  plot_for_relationship <- get_plot(x_var, y_var) 
+  lm_information_data <- get_lm(x_var, y_var)
+  return(list(plot_for_relationship, lm_information_data))
+}
+
+simple_list <- names(hogwarts_final_grades[3:8])
+
+simple_challenge <- map(simple_list, ~get_list(.x, "transfiguration_final_grade"))
+
+combinations <- crossing(first_var= names(hogwarts_final_grades[2:8]), second_var= names(hogwarts_final_grades[2:8])) %>% 
+  filter(first_var!=second_var)
+
+boss_challenge <- map2(combinations$first_var, combinations$second_var, ~get_list(.x, .y))
+
+simple_challenge[1]
+boss_challenge[1]
+
+
+
+```
+
+###lapply, map, for loops! Why!
+```{r}
+# r inferno example https://www.burns-stat.com/pages/Tutor/R_inferno.pdf
+# good discussion of perfomance differences here https://stackoverflow.com/questions/42393658/what-are-the-performance-differences-between-for-loops-and-the-apply-family-of-f
+x <- 10
+lsum <- 0
+for(i in 1:length(x)) {
+lsum <- lsum + log(x[i])
+}
+# the above is generally seen as less preferable than the below
+lsum <- sum(log(x))
+
+
+###### examples borrowed from slack conversation
+n <- 10000
+
+result_for <- list()
+for (i in 1:n) {
+result_for[[i]] <- i^2
+}
+
+result_lapply <- lapply(1:n, function(x) x^2)
+
+result_prealloc <- vector('list', n)
+for (i in 1:n) {
+  result_prealloc[[i]] <- i^2
+  }
+result_prealloc
+
+
+
+```
+
+
+
+### regression questions with quiditch and grades
+
+```{r}
+hogwarts_total <- hogwarts_admits %>% 
+  left_join(hogwarts_final_grades, by = "name")
+
+lm(quiditch_capabilities~1, data = hogwarts_total)
+lm(quiditch_capabilities~1+family_gringotts_account_size, data = hogwarts_total)
+lm(quiditch_capabilities~family_gringotts_account_size, data = hogwarts_total)
+lm(quiditch_capabilities~family_gringotts_account_size-1, data = hogwarts_total)
+lm(quiditch_capabilities~0 + family_gringotts_account_size , data = hogwarts_total)
+lm(quiditch_capabilities~ (family_gringotts_account_size + transfiguration_final_grade)^2 , data = hogwarts_total)
+lm(quiditch_capabilities~ family_gringotts_account_size + transfiguration_final_grade + transfiguration_final_grade:family_gringotts_account_size , data = hogwarts_total)
+lm(quiditch_capabilities~ family_gringotts_account_size*transfiguration_final_grade , data = hogwarts_total)
+lm(quiditch_capabilities~ (family_gringotts_account_size + transfiguration_final_grade)^2 , data = hogwarts_total)
+lm(quiditch_capabilities~ poly(family_gringotts_account_size,2) + transfiguration_final_grade , data = hogwarts_total)
+lm(quiditch_capabilities~ I(family_gringotts_account_size^2) + transfiguration_final_grade , data = hogwarts_total)
+
+```
+
+
